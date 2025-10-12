@@ -1,5 +1,7 @@
 package controlador;
-
+/**
+ * @autores: Juan Sebastian Ramirez Vallejo, Gabriel Muñoz y Andres Ramirez 4L
+ */
 import vista.Login;
 import vista.MenuPrincipal;
 import javax.swing.*;
