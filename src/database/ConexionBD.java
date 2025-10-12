@@ -7,8 +7,8 @@ import java.sql.SQLException;
 public class ConexionBD {
     // Configuración para Oracle
     private static final String URL = "jdbc:oracle:thin:@192.168.254.215:1521:orcl";
-    private static final String USER = "proyecto_integrador";
-    private static final String PASSWORD = "proyecto_integrador";
+    private static final String USER = "proyecto_integrador2025";
+    private static final String PASSWORD = "proyecto_integrador2025";
     
     static {
         try {
