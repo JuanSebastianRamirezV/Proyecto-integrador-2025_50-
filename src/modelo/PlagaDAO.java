@@ -80,7 +80,7 @@ public class PlagaDAO {
 
     public List<Plaga> obtenerTodos() {
         List<Plaga> plagas = new ArrayList<>();
-        String sql = "SELECT * FROM PLAGA ORDER BY NOMBRE_PLAGA";
+        String sql = "SELECT * FROM PLAGA ORDER BY ID_PLAGA asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

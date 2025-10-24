@@ -93,7 +93,7 @@ public class InspectorDAO {
 
     public List<Inspector> obtenerTodos() {
         List<Inspector> inspectores = new ArrayList<>();
-        String sql = "SELECT * FROM INSPECTORES ORDER BY nombres_completos";
+        String sql = "SELECT * FROM INSPECTORES ORDER BY id_inspector asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

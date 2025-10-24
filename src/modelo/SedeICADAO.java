@@ -122,7 +122,7 @@ public class SedeICADAO {
     public List<SedeICA> obtenerTodos() {
         List<SedeICA> sedes = new ArrayList<>();  // Lista para almacenar los resultados
         // SQL para seleccionar todos los registros ordenados por ID
-        String sql = "SELECT * FROM SEDE_ICA ORDER BY id_sede";
+        String sql = "SELECT * FROM SEDE_ICA ORDER BY ID_SEDE asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

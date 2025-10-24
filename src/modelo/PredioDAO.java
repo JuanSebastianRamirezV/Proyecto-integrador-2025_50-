@@ -80,7 +80,7 @@ public class PredioDAO {
 
     public List<Predio> obtenerTodos() {
         List<Predio> predios = new ArrayList<>();
-        String sql = "SELECT * FROM PREDIO ORDER BY NOMBRE_PREDIO";
+        String sql = "SELECT * FROM PREDIO ORDER BY ID_PREDIO asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

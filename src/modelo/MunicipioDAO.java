@@ -76,7 +76,7 @@ public class MunicipioDAO {
 
     public List<Municipio> obtenerTodos() {
         List<Municipio> municipios = new ArrayList<>();
-        String sql = "SELECT * FROM MUNICIPIO ORDER BY NOMBRE";
+        String sql = "SELECT * FROM MUNICIPIO ORDER BY ID_MUNICIPIO asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

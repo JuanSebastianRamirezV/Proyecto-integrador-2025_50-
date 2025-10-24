@@ -84,7 +84,7 @@ public class ProductorDAO {
 
     public List<Productor> obtenerTodos() {
         List<Productor> productores = new ArrayList<>();
-        String sql = "SELECT * FROM PRODUCTORES ORDER BY nombre_completo";
+        String sql = "SELECT * FROM PRODUCTORES ORDER BY ID_PRODUCTOR asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);

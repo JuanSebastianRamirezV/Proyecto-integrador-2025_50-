@@ -1,4 +1,4 @@
-/**
+    /**
  * Data Access Object (DAO) para la gestión de operaciones de base de datos relacionadas con la entidad Cultivo.
  * Proporciona métodos para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) y consultas específicas
  * sobre la tabla CULTIVO en la base de datos.
@@ -120,7 +120,7 @@ public class CultivoDAO {
      */
     public List<Cultivo> obtenerTodos() {
         List<Cultivo> cultivos = new ArrayList<>();
-        String sql = "SELECT * FROM CULTIVO ORDER BY NOMBRE_CULTIVO";
+        String sql = "SELECT * FROM CULTIVO ORDER BY ID_CULTIVO asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -177,7 +177,7 @@ public class CultivoDAO {
      */
     public List<Cultivo> obtenerPorPredio(int idPredio) {
         List<Cultivo> cultivos = new ArrayList<>();
-        String sql = "SELECT * FROM CULTIVO WHERE ID_PREDIO = ? ORDER BY NOMBRE_CULTIVO";
+        String sql = "SELECT * FROM CULTIVO WHERE ID_PREDIO = ? ORDER BY ID_CULTIVO asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

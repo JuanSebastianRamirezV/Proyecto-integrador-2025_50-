@@ -46,7 +46,7 @@ public class LugarProduccionDAO {
      */
     public boolean actualizar(LugarProduccion lugar) {
         // SQL para actualizar todos los campos del lugar de producción
-        String sql = "UPDATE LugarProduccion SET nombre_lugar = ?, numero_registro_ica = ?, direccion_lugar = ?, id_productor = ?, id_cultivo = ? WHERE id_lugar_produccion = ?";
+        String sql = "UPDATE LUGARPRODUCCION SET NOMBRE_LUGAR = ?, NUMERO_REGISTROICA = ?, DIRECCION = ?, ID_PRODUCTOR = ?, ID_CULTIVO = ? WHERE ID_LUGARPRODUCCION = ?";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -74,7 +74,7 @@ public class LugarProduccionDAO {
      */
     public boolean eliminar(int idLugarProduccion) {
         // SQL para eliminar un registro por su ID
-        String sql = "DELETE FROM LugarProduccion WHERE id_lugar_produccion = ?";
+        String sql = "DELETE FROM LUGARPRODUCCION WHERE ID_LUGARPRODUCCION = ?";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -97,7 +97,7 @@ public class LugarProduccionDAO {
      */
     public LugarProduccion obtenerPorId(int idLugarProduccion) {
         // SQL para seleccionar un registro específico por ID
-        String sql = "SELECT * FROM LugarProduccion WHERE id_lugar_produccion = ?";
+        String sql = "SELECT * FROM LUGARPRODUCCION WHERE ID_LUGARPRODUCCION = ?";
         LugarProduccion lugar = null;  // Inicializa como null por si no se encuentra
         
         try (Connection conn = ConexionBD.getConexion();
@@ -109,12 +109,12 @@ public class LugarProduccionDAO {
             // Si se encontró el registro, crea y popula el objeto
             if (rs.next()) {
                 lugar = new LugarProduccion();
-                lugar.setIdLugarProduccion(rs.getInt("id_lugar_produccion"));
-                lugar.setNombreLugar(rs.getString("nombre_lugar"));
-                lugar.setNumeroRegistroICA(rs.getString("numero_registro_ica"));
-                lugar.setDireccionLugar(rs.getString("direccion_lugar"));
-                lugar.setIdProductor(rs.getInt("id_productor"));
-                lugar.setIdCultivo(rs.getInt("id_cultivo"));
+                lugar.setIdLugarProduccion(rs.getInt("ID_LUGARPRODUCCION"));
+                lugar.setNombreLugar(rs.getString("NOMBRE_LUGAR"));
+                lugar.setNumeroRegistroICA(rs.getString("NUMERO_REGISTROICA"));
+                lugar.setDireccionLugar(rs.getString("DIRECCION"));
+                lugar.setIdProductor(rs.getInt("ID_PRODUCTOR"));
+                lugar.setIdCultivo(rs.getInt("ID_CULTIVO"));
             }
         } catch (SQLException e) {
             System.out.println("Error al obtener lugar de producción: " + e.getMessage());
@@ -130,7 +130,7 @@ public class LugarProduccionDAO {
     public List<LugarProduccion> obtenerTodos() {
         List<LugarProduccion> lugares = new ArrayList<>();  // Lista para almacenar los resultados
         // SQL para seleccionar todos los registros ordenados por nombre
-        String sql = "SELECT * FROM LugarProduccion ORDER BY nombre_lugar";
+        String sql = "SELECT * FROM LugarProduccion ORDER BY ID_LUGARPRODUCCION ASC";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -140,10 +140,10 @@ public class LugarProduccionDAO {
             while (rs.next()) {
                 LugarProduccion lugar = new LugarProduccion();
                 // Pobla el objeto con los datos de la base de datos
-                lugar.setIdLugarProduccion(rs.getInt("id_lugar_produccion"));
+                lugar.setIdLugarProduccion(rs.getInt("ID_LUGARPRODUCCION"));
                 lugar.setNombreLugar(rs.getString("nombre_lugar"));
-                lugar.setNumeroRegistroICA(rs.getString("numero_registro_ica"));
-                lugar.setDireccionLugar(rs.getString("direccion_lugar"));
+                lugar.setNumeroRegistroICA(rs.getString("NUMERO_REGISTROICA"));
+                lugar.setDireccionLugar(rs.getString("DIRECCION"));
                 lugar.setIdProductor(rs.getInt("id_productor"));
                 lugar.setIdCultivo(rs.getInt("id_cultivo"));
                 lugares.add(lugar);  // Agrega el objeto a la lista
@@ -163,7 +163,7 @@ public class LugarProduccionDAO {
     public List<LugarProduccion> buscar(String criterio) {
         List<LugarProduccion> lugares = new ArrayList<>();
         // SQL para búsqueda en múltiples campos usando LIKE
-        String sql = "SELECT * FROM LugarProduccion WHERE nombre_lugar LIKE ? OR numero_registro_ica LIKE ? OR direccion_lugar LIKE ? ORDER BY nombre_lugar";
+        String sql = "SELECT * FROM LUGARPRODUCCION WHERE NOMBRE_LUGAR LIKE ? OR NUMERO_REGISTROICA LIKE ? OR DIRECCION LIKE ? ORDER BY NOMBRE_LUGAR";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -179,10 +179,10 @@ public class LugarProduccionDAO {
             // Procesa todos los registros que coinciden con la búsqueda
             while (rs.next()) {
                 LugarProduccion lugar = new LugarProduccion();
-                lugar.setIdLugarProduccion(rs.getInt("id_lugar_produccion"));
+                lugar.setIdLugarProduccion(rs.getInt("ID_LUGARPRODUCCION"));
                 lugar.setNombreLugar(rs.getString("nombre_lugar"));
-                lugar.setNumeroRegistroICA(rs.getString("numero_registro_ica"));
-                lugar.setDireccionLugar(rs.getString("direccion_lugar"));
+                lugar.setNumeroRegistroICA(rs.getString("NUMERO_REGISTROICA"));
+                lugar.setDireccionLugar(rs.getString("DIRECCION"));
                 lugar.setIdProductor(rs.getInt("id_productor"));
                 lugar.setIdCultivo(rs.getInt("id_cultivo"));
                 lugares.add(lugar);

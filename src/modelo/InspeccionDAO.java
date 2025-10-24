@@ -129,7 +129,7 @@ public class InspeccionDAO {
      */
     public List<Inspeccion> obtenerTodos() {
         List<Inspeccion> inspecciones = new ArrayList<>();
-        String sql = "SELECT * FROM INSPECCION ORDER BY fecha_inspeccion DESC";
+        String sql = "SELECT * FROM INSPECCION ORDER BY ID_INSPECCION asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -161,7 +161,7 @@ public class InspeccionDAO {
      */
     public List<Inspeccion> buscar(String criterio) {
         List<Inspeccion> inspecciones = new ArrayList<>();
-        String sql = "SELECT * FROM INSPECCION WHERE estado LIKE ? OR observaciones LIKE ? ORDER BY fecha_inspeccion DESC";
+        String sql = "SELECT * FROM INSPECCION WHERE estado LIKE ? OR observaciones LIKE ? ORDER BY id_inspeccion asc";
         
         try (Connection conn = ConexionBD.getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
