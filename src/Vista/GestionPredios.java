@@ -14,7 +14,8 @@ public class GestionPredios extends JFrame {
     private JTextField txtId, txtNombrePredio, txtNombrePropietario, txtIdMunicipio;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private PredioController controller;
- /**
+
+    /**
      * Constructor principal de la clase GestionPredios
      * Inicializa el controlador y los componentes de la interfaz
      */
@@ -23,7 +24,8 @@ public class GestionPredios extends JFrame {
         initComponents();
         cargarDatos();
     }
-/**
+
+    /**
      * Inicializa y configura todos los componentes visuales de la interfaz
      * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
      */
@@ -55,7 +57,8 @@ public class GestionPredios extends JFrame {
         add(panelPrincipal);
         agregarActionListeners();
     }
-/**
+
+    /**
      * Crea y configura el panel del formulario para ingreso de datos de predios
      * Utiliza GridBagLayout para un diseño organizado y flexible
      * 
@@ -83,19 +86,22 @@ public class GestionPredios extends JFrame {
         txtId.setEditable(false);
         txtId.setBackground(new Color(240, 240, 240));
         panelFormulario.add(txtId, gbc);
-// Campo Nombre Predio (obligatorio)
+
+        // Campo Nombre Predio (obligatorio)
         gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Nombre Predio:*"), gbc);
         gbc.gridx = 1;
         txtNombrePredio = new JTextField();
         panelFormulario.add(txtNombrePredio, gbc);
-// Campo Nombre Propietario (obligatorio)
+
+        // Campo Nombre Propietario (obligatorio)
         gbc.gridx = 0; gbc.gridy = 2;
         panelFormulario.add(new JLabel("Nombre Propietario:*"), gbc);
         gbc.gridx = 1;
         txtNombrePropietario = new JTextField();
         panelFormulario.add(txtNombrePropietario, gbc);
- // Campo ID Municipio
+
+        // Campo ID Municipio
         gbc.gridx = 0; gbc.gridy = 3;
         panelFormulario.add(new JLabel("ID Municipio:"), gbc);
         gbc.gridx = 1;
@@ -118,7 +124,8 @@ public class GestionPredios extends JFrame {
 
         return panelFormulario;
     }
-  /**
+
+    /**
      * Crea y configura el componente de tabla con scroll para mostrar los predios
      * Incluye personalización visual con colores alternados y selección
      * 
@@ -137,7 +144,8 @@ public class GestionPredios extends JFrame {
         modeloTabla.addColumn("Nombre Predio");
         modeloTabla.addColumn("Nombre Propietario");
         modeloTabla.addColumn("ID Municipio");
-// Configuración de la tabla
+
+        // Configuración de la tabla
         tablaPredios = new JTable(modeloTabla);
         tablaPredios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaPredios.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -145,18 +153,25 @@ public class GestionPredios extends JFrame {
         tablaPredios.getTableHeader().setForeground(Color.WHITE);
         tablaPredios.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaPredios.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
+                    // Fila seleccionada
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -170,7 +185,8 @@ public class GestionPredios extends JFrame {
 
         return scrollTabla;
     }
-/**
+
+    /**
      * Crea el panel de botones principales para operaciones CRUD
      * 
      * @return JPanel con los botones de acciones principales
@@ -189,7 +205,8 @@ public class GestionPredios extends JFrame {
         btnActualizar.setToolTipText("Actualizar el predio seleccionado");
         btnEliminar.setToolTipText("Eliminar el predio seleccionado");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
-         // Agregar botones al panel
+
+        // Agregar botones al panel
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
         panelBotones.add(btnEliminar);
@@ -215,7 +232,8 @@ public class GestionPredios extends JFrame {
         boton.setPreferredSize(new Dimension(150, 35));
         return boton;
     }
-/**
+
+    /**
      * Configura todos los ActionListeners para los componentes de la interfaz
      * Conecta los eventos de usuario con los métodos correspondientes
      */

@@ -171,18 +171,25 @@ public class GestionLugaresProduccion extends JFrame {
         tablaLugares.getTableHeader().setForeground(Color.WHITE);
         tablaLugares.setRowHeight(25);
         
-        // Renderer para cambiar el color de fondo de las filas según la selección
+        // Renderer para cambiar el color de fondo de las filas según la selección - CORREGIDO
         tablaLugares.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
+                    // Fila seleccionada
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -236,7 +243,6 @@ public class GestionLugaresProduccion extends JFrame {
         boton.setPreferredSize(new Dimension(150, 35));
         return boton;
     }
-
 
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarLugar());

@@ -188,20 +188,25 @@ public class GestionSedesICA extends JFrame {
         tablaSedes.getTableHeader().setForeground(Color.WHITE);
         tablaSedes.setRowHeight(25);  // Altura fija de filas para mejor legibilidad
         
-        // Renderer personalizado para mejorar la experiencia visual
+        // Renderer personalizado para mejorar la experiencia visual - CORREGIDO
         tablaSedes.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    // Filas alternadas: blanco y gris claro para mejor contraste
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
                     // Fila seleccionada: azul con texto blanco para claro contraste
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados: blanco y gris claro para mejor contraste
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -344,6 +349,7 @@ public class GestionSedesICA extends JFrame {
     private void limpiarTabla() {
         modeloTabla.setRowCount(0);
     }
+
     private void limpiarFormulario() {
         txtId.setText("");
         txtCorreo.setText("");

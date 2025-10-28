@@ -15,19 +15,21 @@ public class GestionInspectores extends JFrame {
     private JComboBox<String> cmbTipoDocumento;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private InspectorController controller;
-/**
- * Constructor de la clase GestionInspectores
- * Inicializa el controlador y los componentes de la interfaz gráfica
- */
+
+    /**
+     * Constructor de la clase GestionInspectores
+     * Inicializa el controlador y los componentes de la interfaz gráfica
+     */
     public GestionInspectores() {
         this.controller = new InspectorController();
         initComponents();
         cargarDatos();
     }
-/**
- * Inicializa y configura todos los componentes visuales de la interfaz
- * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
- */
+
+    /**
+     * Inicializa y configura todos los componentes visuales de la interfaz
+     * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
+     */
     private void initComponents() {
         setTitle("Gestión de Inspectores - CRUD Completo");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -56,12 +58,13 @@ public class GestionInspectores extends JFrame {
         add(panelPrincipal);
         agregarActionListeners();
     }
-/**
- * Crea y configura el panel del formulario para ingreso de datos de inspectores
- * Utiliza GridBagLayout para un diseño organizado y flexible
- * 
- * @return JPanel configurado con todos los campos del formulario
- */
+
+    /**
+     * Crea y configura el panel del formulario para ingreso de datos de inspectores
+     * Utiliza GridBagLayout para un diseño organizado y flexible
+     * 
+     * @return JPanel configurado con todos los campos del formulario
+     */
     private JPanel crearPanelFormulario() {
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
@@ -137,12 +140,13 @@ public class GestionInspectores extends JFrame {
 
         return panelFormulario;
     }
-/**
- * Crea y configura el componente de tabla con scroll para mostrar los inspectores
- * Incluye personalización visual con colores alternados y selección
- * 
- * @return JScrollPane que contiene la tabla de inspectores
- */
+
+    /**
+     * Crea y configura el componente de tabla con scroll para mostrar los inspectores
+     * Incluye personalización visual con colores alternados y selección
+     * 
+     * @return JScrollPane que contiene la tabla de inspectores
+     */
     private JScrollPane crearScrollTabla() {
         modeloTabla = new DefaultTableModel() {
             @Override
@@ -165,7 +169,7 @@ public class GestionInspectores extends JFrame {
         tablaInspectores.getTableHeader().setForeground(Color.WHITE);
         tablaInspectores.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaInspectores.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -174,6 +178,7 @@ public class GestionInspectores extends JFrame {
                 
                 if (!isSelected) {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
+                    c.setForeground(Color.BLACK); // ← CORRECCIÓN APLICADA: Texto negro para filas no seleccionadas
                 } else {
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
@@ -190,11 +195,12 @@ public class GestionInspectores extends JFrame {
 
         return scrollTabla;
     }
-/**
- * Crea el panel de botones principales para operaciones CRUD
- * 
- * @return JPanel con los botones de acciones principales
- */
+
+    /**
+     * Crea el panel de botones principales para operaciones CRUD
+     * 
+     * @return JPanel con los botones de acciones principales
+     */
     private JPanel crearPanelBotonesPrincipales() {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         panelBotones.setBackground(new Color(240, 240, 240));

@@ -16,7 +16,7 @@ public class GestionProductores extends JFrame {
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private ProductorController controller;
 
-        /**
+    /**
      * Constructor de la clase GestionProductores.
      * Inicializa la interfaz gráfica y carga los datos iniciales.
      * 
@@ -25,13 +25,13 @@ public class GestionProductores extends JFrame {
      * 2. Configura los componentes de la interfaz
      * 3. Carga los datos desde la base de datos
      */
-
     public GestionProductores() {
         this.controller = new ProductorController();
         initComponents();
         cargarDatos();
     }
-/**
+
+    /**
      * Inicializa todos los componentes de la interfaz gráfica.
      * Configura la ventana principal, paneles, formularios, tabla y botones.
      * 
@@ -69,7 +69,8 @@ public class GestionProductores extends JFrame {
         add(panelPrincipal);
         agregarActionListeners();
     }
-  /**
+
+    /**
      * Crea el panel del formulario para ingreso y edición de datos de productores.
      * 
      * @return JPanel configurado con GridBagLayout conteniendo todos los campos del formulario
@@ -138,7 +139,8 @@ public class GestionProductores extends JFrame {
 
         return panelFormulario;
     }
-  /**
+
+    /**
      * Crea y configura la tabla de productores dentro de un JScrollPane.
      * 
      * @return JScrollPane conteniendo la tabla de productores configurada
@@ -162,7 +164,8 @@ public class GestionProductores extends JFrame {
         modeloTabla.addColumn("Nombre Completo");
         modeloTabla.addColumn("Tipo Identificación");
         modeloTabla.addColumn("Rol");
-// Configuración de la tabla
+
+        // Configuración de la tabla
         tablaProductores = new JTable(modeloTabla);
         tablaProductores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablaProductores.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -170,18 +173,25 @@ public class GestionProductores extends JFrame {
         tablaProductores.getTableHeader().setForeground(Color.WHITE);
         tablaProductores.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaProductores.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
+                    // Fila seleccionada
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -222,6 +232,7 @@ public class GestionProductores extends JFrame {
         btnActualizar.setToolTipText("Actualizar el productor seleccionado");
         btnEliminar.setToolTipText("Eliminar el productor seleccionado");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
+        
         // Agregar botones al panel
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
@@ -248,11 +259,11 @@ public class GestionProductores extends JFrame {
         boton.setPreferredSize(new Dimension(150, 35));
         return boton;
     }
-/**
+
+    /**
      * Configura todos los ActionListeners para los botones y componentes interactivos.
      * Asocia cada botón con su método correspondiente y configura la selección de la tabla.
      */
-    
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarProductor());
         btnActualizar.addActionListener(e -> actualizarProductor());
@@ -267,7 +278,8 @@ public class GestionProductores extends JFrame {
             }
         });
     }
-/**
+
+    /**
      * Carga todos los productores desde la base de datos y los muestra en la tabla.
      * Limpia la tabla existente antes de cargar los nuevos datos.
      * Muestra un mensaje informativo con el resultado de la operación.

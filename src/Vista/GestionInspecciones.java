@@ -176,7 +176,7 @@ public class GestionInspecciones extends JFrame {
         tablaInspecciones.getTableHeader().setForeground(Color.WHITE);
         tablaInspecciones.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaInspecciones.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -185,6 +185,7 @@ public class GestionInspecciones extends JFrame {
                 
                 if (!isSelected) {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
+                    c.setForeground(Color.BLACK); // ← CORRECCIÓN APLICADA: Texto negro para filas no seleccionadas
                 } else {
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);

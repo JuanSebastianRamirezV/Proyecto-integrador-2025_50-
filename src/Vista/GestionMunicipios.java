@@ -113,18 +113,25 @@ public class GestionMunicipios extends JFrame {
         tablaMunicipios.getTableHeader().setForeground(Color.WHITE);
         tablaMunicipios.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaMunicipios.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
+                    // Fila seleccionada
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }

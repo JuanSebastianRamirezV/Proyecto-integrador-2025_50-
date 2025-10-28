@@ -162,7 +162,7 @@ private JScrollPane crearScrollTabla() {
     tablaCultivos.getTableHeader().setForeground(Color.WHITE);
     tablaCultivos.setRowHeight(25);
     
-    // renderer para dar color alternado a las filas y resaltar selección
+    // renderer para dar color alternado a las filas y resaltar selección - CORREGIDO
     tablaCultivos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -171,6 +171,7 @@ private JScrollPane crearScrollTabla() {
             
             if (!isSelected) {
                 c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
+                c.setForeground(Color.BLACK); // ← CORRECCIÓN APLICADA: Texto negro para filas no seleccionadas
             } else {
                 c.setBackground(new Color(41, 128, 185));
                 c.setForeground(Color.WHITE);

@@ -16,9 +16,9 @@ public class GestionPlagas extends JFrame {
     private PlagaController controller;
 
     /**
- * Constructor de la clase GestionPlagas
- * Inicializa el controlador y los componentes de la interfaz gráfica
- */
+     * Constructor de la clase GestionPlagas
+     * Inicializa el controlador y los componentes de la interfaz gráfica
+     */
     public GestionPlagas() {
         this.controller = new PlagaController();
         initComponents();
@@ -26,9 +26,9 @@ public class GestionPlagas extends JFrame {
     }
 
     /**
- * Inicializa y configura todos los componentes visuales de la interfaz
- * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
- */
+     * Inicializa y configura todos los componentes visuales de la interfaz
+     * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
+     */
     private void initComponents() {
         setTitle("Gestión de Plagas - CRUD Completo");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -59,11 +59,11 @@ public class GestionPlagas extends JFrame {
     }
 
     /**
- * Crea y configura el panel del formulario para ingreso de datos de plagas
- * Utiliza GridBagLayout para un diseño organizado y flexible
- * 
- * @return JPanel configurado con todos los campos del formulario
- */
+     * Crea y configura el panel del formulario para ingreso de datos de plagas
+     * Utiliza GridBagLayout para un diseño organizado y flexible
+     * 
+     * @return JPanel configurado con todos los campos del formulario
+     */
     private JPanel crearPanelFormulario() {
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
@@ -123,11 +123,11 @@ public class GestionPlagas extends JFrame {
     }
 
     /**
- * Crea y configura el componente de tabla con scroll para mostrar las plagas
- * Incluye personalización visual con colores alternados y selección
- * 
- * @return JScrollPane que contiene la tabla de plagas
- */
+     * Crea y configura el componente de tabla con scroll para mostrar las plagas
+     * Incluye personalización visual con colores alternados y selección
+     * 
+     * @return JScrollPane que contiene la tabla de plagas
+     */
     private JScrollPane crearScrollTabla() {
         modeloTabla = new DefaultTableModel() {
             @Override
@@ -147,18 +147,25 @@ public class GestionPlagas extends JFrame {
         tablaPlagas.getTableHeader().setForeground(Color.WHITE);
         tablaPlagas.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer para filas alternadas - CORREGIDO
         tablaPlagas.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                } else {
+                if (isSelected) {
+                    // Fila seleccionada
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    // Filas no seleccionadas - colores alternados
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -172,11 +179,12 @@ public class GestionPlagas extends JFrame {
 
         return scrollTabla;
     }
-/**
- * Crea el panel de botones principales para operaciones CRUD
- * 
- * @return JPanel con los botones de acciones principales
- */
+
+    /**
+     * Crea el panel de botones principales para operaciones CRUD
+     * 
+     * @return JPanel con los botones de acciones principales
+     */
     private JPanel crearPanelBotonesPrincipales() {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         panelBotones.setBackground(new Color(240, 240, 240));
@@ -199,13 +207,14 @@ public class GestionPlagas extends JFrame {
         
         return panelBotones;
     }
-/**
- * Factory method para crear botones estilizados consistentes
- * 
- * @param texto Texto que muestra el botón
- * @param color Color de fondo del botón
- * @return JButton configurado con el estilo de la aplicación
- */
+
+    /**
+     * Factory method para crear botones estilizados consistentes
+     * 
+     * @param texto Texto que muestra el botón
+     * @param color Color de fondo del botón
+     * @return JButton configurado con el estilo de la aplicación
+     */
     private JButton crearBoton(String texto, Color color) {
         JButton boton = new JButton(texto);
         boton.setBackground(color);
@@ -216,10 +225,11 @@ public class GestionPlagas extends JFrame {
         boton.setPreferredSize(new Dimension(150, 35));
         return boton;
     }
-/**
- * Configura todos los ActionListeners para los componentes de la interfaz
- * Conecta los eventos de usuario con los métodos correspondientes
- */
+
+    /**
+     * Configura todos los ActionListeners para los componentes de la interfaz
+     * Conecta los eventos de usuario con los métodos correspondientes
+     */
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarPlaga());
         btnActualizar.addActionListener(e -> actualizarPlaga());
