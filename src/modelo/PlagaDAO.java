@@ -45,15 +45,17 @@ public class PlagaDAO {
     }
 
     public boolean eliminar(int idPlaga) {
-        String sql = "DELETE FROM PLAGA WHERE ID_PLAGA = ?";
-        
+        String sql = "{call eliminar_plaga_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idPlaga);
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar plaga: " + e.getMessage());
+            System.out.println("Error al eliminar plaga en cascada: " + e.getMessage());
             return false;
         }
     }

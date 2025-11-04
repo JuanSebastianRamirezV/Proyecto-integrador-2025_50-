@@ -68,19 +68,17 @@ public class SedeICADAO {
      * @return true si la eliminación fue exitosa, false en caso contrario
      */
     public boolean eliminar(int idSede) {
-        // SQL para eliminar un registro por su ID
-        String sql = "DELETE FROM SEDE_ICA WHERE id_sede = ?";
-        
+        String sql = "{call eliminar_sedeica_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            // Establece el ID como parámetro para la eliminación
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idSede);
-            
-            // Ejecuta la eliminación y verifica si se afectó alguna fila
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar sede ICA: " + e.getMessage());
+            System.out.println("Error al eliminar sede ICA en cascada: " + e.getMessage());
             return false;
         }
     }

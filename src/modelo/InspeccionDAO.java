@@ -71,24 +71,26 @@ public class InspeccionDAO {
     }
 
     /**
-     * Elimina una inspección de la base de datos por su ID.
-     * 
-     * @param idInspeccion El identificador único de la inspección a eliminar
-     * @return true si la eliminación fue exitosa, false en caso contrario
-     */
-    public boolean eliminar(int idInspeccion) {
-        String sql = "DELETE FROM INSPECCION WHERE id_inspeccion = ?";
-        
-        try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setInt(1, idInspeccion);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.out.println("Error al eliminar inspección: " + e.getMessage());
-            return false;
-        }
-    }
+    * Elimina una inspección de la base de datos por su ID con eliminación en cascada.
+    * 
+    * @param idInspeccion El identificador único de la inspección a eliminar
+    * @return true si la eliminación fue exitosa, false en caso contrario
+    */
+   public boolean eliminar(int idInspeccion) {
+       String sql = "{call eliminar_inspeccion_cascada(?)}";
+
+       try (Connection conn = ConexionBD.getConexion();
+            CallableStatement stmt = conn.prepareCall(sql)) {
+
+           stmt.setInt(1, idInspeccion);
+           stmt.execute();
+           return true;
+
+       } catch (SQLException e) {
+           System.out.println("Error al eliminar inspección en cascada: " + e.getMessage());
+           return false;
+       }
+   }
 
     /**
      * Obtiene una inspección específica por su ID.

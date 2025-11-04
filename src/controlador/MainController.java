@@ -49,19 +49,19 @@ public class MainController {
             loginView = new Login();
             
             // Configurar listeners del login
-            loginView.setLoginListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    procesarLogin(loginView.getUsuario(), loginView.getPassword());
-                }
-            });
-            
-            loginView.setSalirListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    salirAplicacion();
-                }
-            });
+            loginView.addIngresarListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        procesarLogin(loginView.getUsuario(), loginView.getPassword());
+    }
+});
+
+loginView.addSalirListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        salirAplicacion();
+    }
+});
         }
         
         loginView.setVisible(true);

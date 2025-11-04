@@ -409,38 +409,39 @@ public class GestionInspecciones extends JFrame {
     }
 
     private void eliminarInspeccion() {
-        int filaSeleccionada = tablaInspecciones.getSelectedRow();
-        if (filaSeleccionada < 0) {
-            mostrarMensajeError("Seleccione una inspección de la tabla para eliminar");
-            return;
-        }
+    int filaSeleccionada = tablaInspecciones.getSelectedRow();
+    if (filaSeleccionada < 0) {
+        mostrarMensajeError("Seleccione una inspección de la tabla para eliminar");
+        return;
+    }
 
-        int idInspeccion = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String estadoInspeccion = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
+    int idInspeccion = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
+    String estadoInspeccion = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Está seguro que desea eliminar la inspección?\n" +
-            "Estado: " + estadoInspeccion + "\n" +
-            "ID: " + idInspeccion + "\n\n" +
-            "Esta acción no se puede deshacer.",
-            "Confirmar Eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
+    int confirm = JOptionPane.showConfirmDialog(this,
+        "¿Está seguro que desea eliminar la inspección?\n" +
+        "Estado: " + estadoInspeccion + "\n" +
+        "ID: " + idInspeccion + "\n\n" +
+        "Se eliminarán automáticamente todos los lugares de producción asociados a esta inspección.\n" +
+        "Esta acción no se puede deshacer.",
+        "Confirmar Eliminación",
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.WARNING_MESSAGE);
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                if (controller.eliminarInspeccion(idInspeccion)) {
-                    mostrarMensajeExito("Inspección eliminada exitosamente");
-                    cargarDatos();
-                    limpiarFormulario();
-                } else {
-                    mostrarMensajeError("Error al eliminar la inspección de la base de datos");
-                }
-            } catch (Exception ex) {
-                mostrarMensajeError("Error inesperado: " + ex.getMessage());
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
+            if (controller.eliminarInspeccion(idInspeccion)) {
+                mostrarMensajeExito("Inspección y lugares de producción asociados eliminados exitosamente");
+                cargarDatos();
+                limpiarFormulario();
+            } else {
+                mostrarMensajeError("Error al eliminar la inspección de la base de datos");
             }
+        } catch (Exception ex) {
+            mostrarMensajeError("Error inesperado: " + ex.getMessage());
         }
     }
+}
 
     private void buscarInspecciones() {
         String criterio = JOptionPane.showInputDialog(this, 

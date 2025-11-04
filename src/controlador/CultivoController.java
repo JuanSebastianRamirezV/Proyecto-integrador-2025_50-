@@ -84,7 +84,8 @@ public class CultivoController {
 
     /**
      * Elimina un cultivo del sistema mediante su identificador.
-     * Remueve permanentemente el registro del cultivo de la base de datos.
+     * Remueve permanentemente el registro del cultivo de la base de datos,
+     * incluyendo todas las dependencias relacionadas mediante eliminación en cascada.
      * 
      * @param idCultivo Identificador único del cultivo a eliminar. Debe ser mayor a 0.
      * @return boolean - true si la eliminación fue exitosa, false en caso contrario
@@ -93,11 +94,16 @@ public class CultivoController {
      * 
      * Precondiciones:
      * - El cultivo con el ID especificado debe existir en la base de datos
-     * - No debe haber dependencias referenciales que impidan la eliminación
+     * - Las dependencias referenciales se manejan automáticamente mediante cascada
      * 
      * Postcondiciones:
-     * - Si es exitoso: el cultivo es removido permanentemente de la base de datos
-     * - Si falla: se retorna false y el cultivo permanece en el sistema
+     * - Si es exitoso: el cultivo y todas sus dependencias son removidas permanentemente
+     * - Si falla: se retorna false y el sistema permanece sin cambios
+     * 
+     * Comportamiento de eliminación en cascada:
+     * - Se eliminan automáticamente todos los registros relacionados en PLAGA_CULTIVO
+     * - Se mantiene la integridad referencial de la base de datos
+     * - La operación es atómica (todo o nada) mediante transacciones
      * 
      * Nota: Esta operación es irreversible y debe usarse con precaución.
      */
@@ -191,5 +197,68 @@ public class CultivoController {
      */
     public boolean existePredio(int idPredio) {
         return cultivoDAO.existePredio(idPredio);
+    }
+
+    /**
+     * Obtiene todos los cultivos asociados a un predio específico.
+     * Recupera la lista de cultivos que pertenecen a un predio particular.
+     * 
+     * @param idPredio Identificador único del predio. Debe ser mayor a 0.
+     * @return List<Cultivo> - lista de cultivos del predio especificado
+     * 
+     * @throws IllegalArgumentException si el idPredio no es válido (<= 0)
+     * 
+     * Precondiciones:
+     * - El predio debe existir en el sistema
+     * 
+     * Postcondiciones:
+     * - Retorna una lista de cultivos asociados al predio
+     * - Si el predio no tiene cultivos, retorna lista vacía
+     * - Si el predio no existe, el comportamiento depende de la implementación del DAO
+     */
+    public List<Cultivo> obtenerCultivosPorPredio(int idPredio) {
+        return cultivoDAO.obtenerPorPredio(idPredio);
+    }
+
+    /**
+     * Verifica si ya existe un cultivo con el mismo nombre en el mismo predio.
+     * Útil para prevenir duplicados y mantener la integridad de los datos.
+     * 
+     * @param nombreCultivo Nombre del cultivo a verificar. No debe ser nulo ni vacío.
+     * @param idPredio Identificador del predio. Debe ser mayor a 0.
+     * @return boolean - true si ya existe un cultivo con ese nombre en el predio, false en caso contrario
+     * 
+     * @throws IllegalArgumentException si el nombreCultivo es nulo/vacío o idPredio no es válido
+     * 
+     * Precondiciones:
+     * - El nombre del cultivo debe ser una cadena válida
+     * - El ID del predio debe ser válido
+     * 
+     * Postcondiciones:
+     * - Retorna true si existe un cultivo con el mismo nombre en el mismo predio
+     * - Retorna false si el nombre está disponible para ese predio
+     */
+    public boolean existeNombreCultivo(String nombreCultivo, int idPredio) {
+        return cultivoDAO.existeNombreCultivo(nombreCultivo, idPredio);
+    }
+
+    /**
+     * Calcula el total de plantas afectadas para todos los cultivos de un predio específico.
+     * Proporciona un resumen estadístico del impacto en un predio particular.
+     * 
+     * @param idPredio Identificador único del predio. Debe ser mayor a 0.
+     * @return int - suma total de plantas afectadas en el predio
+     * 
+     * @throws IllegalArgumentException si el idPredio no es válido (<= 0)
+     * 
+     * Precondiciones:
+     * - El predio debe existir en el sistema
+     * 
+     * Postcondiciones:
+     * - Retorna la suma de plantas afectadas de todos los cultivos del predio
+     * - Retorna 0 si el predio no tiene cultivos o no existen plantas afectadas
+     */
+    public int contarPlantasAfectadasPorPredio(int idPredio) {
+        return cultivoDAO.contarPlantasAfectadasPorPredio(idPredio);
     }
 }

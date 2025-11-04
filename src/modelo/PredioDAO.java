@@ -45,15 +45,17 @@ public class PredioDAO {
     }
 
     public boolean eliminar(int idPredio) {
-        String sql = "DELETE FROM PREDIO WHERE ID_PREDIO = ?";
-        
+        String sql = "{call eliminar_predio_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idPredio);
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar predio: " + e.getMessage());
+            System.out.println("Error al eliminar predio en cascada: " + e.getMessage());
             return false;
         }
     }

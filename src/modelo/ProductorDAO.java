@@ -45,15 +45,17 @@ public class ProductorDAO {
     }
 
     public boolean eliminar(int idProductor) {
-        String sql = "DELETE FROM PRODUCTORES WHERE id_productor = ?";
-        
+        String sql = "{call eliminar_productor_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idProductor);
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar productor: " + e.getMessage());
+            System.out.println("Error al eliminar productor en cascada: " + e.getMessage());
             return false;
         }
     }

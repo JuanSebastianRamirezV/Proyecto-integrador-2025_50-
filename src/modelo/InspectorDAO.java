@@ -51,15 +51,17 @@ public class InspectorDAO {
     }
 
     public boolean eliminar(int idInspector) {
-        String sql = "DELETE FROM INSPECTORES WHERE id_inspector = ?";
-        
+        String sql = "{call eliminar_inspector_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idInspector);
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar inspector: " + e.getMessage());
+            System.out.println("Error al eliminar inspector en cascada: " + e.getMessage());
             return false;
         }
     }

@@ -41,15 +41,17 @@ public class MunicipioDAO {
     }
 
     public boolean eliminar(int idMunicipio) {
-        String sql = "DELETE FROM MUNICIPIO WHERE ID_MUNICIPIO = ?";
-        
+        String sql = "{call eliminar_municipio_cascada(?)}";
+
         try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
             stmt.setInt(1, idMunicipio);
-            return stmt.executeUpdate() > 0;
+            stmt.execute();
+            return true;
+
         } catch (SQLException e) {
-            System.out.println("Error al eliminar municipio: " + e.getMessage());
+            System.out.println("Error al eliminar municipio en cascada: " + e.getMessage());
             return false;
         }
     }

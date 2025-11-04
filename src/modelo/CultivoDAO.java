@@ -68,24 +68,26 @@ public class CultivoDAO {
     }
 
     /**
-     * Elimina un cultivo de la base de datos por su ID.
-     * 
-     * @param idCultivo El identificador único del cultivo a eliminar
-     * @return true si la eliminación fue exitosa, false en caso contrario
-     */
-    public boolean eliminar(int idCultivo) {
-        String sql = "DELETE FROM CULTIVO WHERE ID_CULTIVO = ?";
-        
-        try (Connection conn = ConexionBD.getConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setInt(1, idCultivo);
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.out.println("Error al eliminar cultivo: " + e.getMessage());
-            return false;
-        }
-    }
+    * Elimina un cultivo de la base de datos por su ID con eliminación en cascada.
+    * 
+    * @param idCultivo El identificador único del cultivo a eliminar
+    * @return true si la eliminación fue exitosa, false en caso contrario
+    */
+   public boolean eliminar(int idCultivo) {
+       String sql = "{call eliminar_cultivo_cascada(?)}";
+
+       try (Connection conn = ConexionBD.getConexion();
+            CallableStatement stmt = conn.prepareCall(sql)) {
+
+           stmt.setInt(1, idCultivo);
+           stmt.execute();
+           return true;
+
+       } catch (SQLException e) {
+           System.out.println("Error al eliminar cultivo en cascada: " + e.getMessage());
+           return false;
+       }
+   }
 
     /**
      * Obtiene un cultivo específico por su ID.
