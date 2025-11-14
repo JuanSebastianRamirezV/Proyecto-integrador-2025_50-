@@ -54,6 +54,13 @@ public class LugarProduccion {
 
     public int getIdCultivo() { return idCultivo; }
     public void setIdCultivo(int idCultivo) { this.idCultivo = idCultivo; }
+    
+    // Agregar este campo a la clase LugarProduccion
+    private String nombreProductor; // Nuevo campo para mostrar en la tabla
+
+    // Agregar estos getters y setters
+    public String getNombreProductor() { return nombreProductor; }
+    public void setNombreProductor(String nombreProductor) { this.nombreProductor = nombreProductor; }
 
     /**
      * Representación en texto del lugar de producción mostrando solo el nombre.

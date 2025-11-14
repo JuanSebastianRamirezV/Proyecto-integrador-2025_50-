@@ -62,12 +62,16 @@ public class PlagaController {
         return plagaDAO.obtenerTodos();
     }
 
-    /**
+   /**
      * Busca plagas según un criterio específico
      * @param criterio Texto de búsqueda
      * @return Lista de plagas que coinciden con el criterio
      */
     public List<Plaga> buscarPlagas(String criterio) {
         return plagaDAO.buscar(criterio);
+    }
+    
+    public boolean existePlaga(String nombrePlaga) {
+        return plagaDAO.existeNombrePlaga(nombrePlaga);
     }
 }

@@ -11,9 +11,12 @@ import java.util.List;
 public class GestionPlagas extends JFrame {
     private JTable tablaPlagas;
     private DefaultTableModel modeloTabla;
-    private JTextField txtId, txtNombrePlaga, txtTipoPlaga, txtCultivosAsociados;
+    private JTextField txtNombrePlaga, txtTipoPlaga, txtCultivosAsociados;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private PlagaController controller;
+    
+    // Variable para almacenar el ID de la plaga seleccionada internamente
+    private int idPlagaSeleccionada = -1;
 
     /**
      * Constructor de la clase GestionPlagas
@@ -78,35 +81,31 @@ public class GestionPlagas extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Componentes del formulario
+        // ELIMINADO: Campo ID Plaga - ya no se muestra
+        
+        // Campo Nombre Plaga (obligatorio)
         gbc.gridx = 0; gbc.gridy = 0;
-        panelFormulario.add(new JLabel("ID Plaga:"), gbc);
-        gbc.gridx = 1;
-        txtId = new JTextField();
-        txtId.setEditable(false);
-        txtId.setBackground(new Color(240, 240, 240));
-        panelFormulario.add(txtId, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Nombre Plaga:*"), gbc);
         gbc.gridx = 1;
         txtNombrePlaga = new JTextField();
         panelFormulario.add(txtNombrePlaga, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        // Campo Tipo Plaga
+        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Tipo Plaga:"), gbc);
         gbc.gridx = 1;
         txtTipoPlaga = new JTextField();
         panelFormulario.add(txtTipoPlaga, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        // Campo Cultivos Asociados
+        gbc.gridx = 0; gbc.gridy = 2;
         panelFormulario.add(new JLabel("Cultivos Asociados:"), gbc);
         gbc.gridx = 1;
         txtCultivosAsociados = new JTextField();
         panelFormulario.add(txtCultivosAsociados, gbc);
 
         // Panel de botones del formulario
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 5, 5, 5);
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -135,7 +134,8 @@ public class GestionPlagas extends JFrame {
                 return false;
             }
         };
-        modeloTabla.addColumn("ID Plaga");
+        
+        // MODIFICADO: Eliminar columna "ID Plaga" de la vista
         modeloTabla.addColumn("Nombre Plaga");
         modeloTabla.addColumn("Tipo Plaga");
         modeloTabla.addColumn("Cultivos Asociados");
@@ -253,8 +253,8 @@ public class GestionPlagas extends JFrame {
             mostrarMensajeInformacion("No hay plagas registradas en la base de datos.");
         } else {
             for (Plaga plaga : plagas) {
+                // MODIFICADO: No mostrar el ID en la tabla
                 Object[] fila = {
-                    plaga.getIdPlaga(),
                     plaga.getNombrePlaga(),
                     plaga.getTipoPlaga(),
                     plaga.getCultivosAsociados()
@@ -270,21 +270,36 @@ public class GestionPlagas extends JFrame {
     }
 
     private void limpiarFormulario() {
-        txtId.setText("");
+        // ELIMINADO: txtId.setText("");
         txtNombrePlaga.setText("");
         txtTipoPlaga.setText("");
         txtCultivosAsociados.setText("");
         tablaPlagas.clearSelection();
+        idPlagaSeleccionada = -1; // Reiniciar ID seleccionado
         txtNombrePlaga.requestFocus();
     }
 
     private void seleccionarPlagaDeTabla() {
         int filaSeleccionada = tablaPlagas.getSelectedRow();
         if (filaSeleccionada >= 0) {
-            txtId.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-            txtNombrePlaga.setText(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
-            txtTipoPlaga.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
-            txtCultivosAsociados.setText(modeloTabla.getValueAt(filaSeleccionada, 3).toString());
+            // MODIFICADO: Obtener el nombre de la plaga seleccionada para buscar su ID
+            String nombrePlagaSeleccionada = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+            String tipoPlagaSeleccionada = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            
+            // Buscar la plaga en la base de datos para obtener su ID
+            List<Plaga> plagas = controller.buscarPlagas(nombrePlagaSeleccionada);
+            for (Plaga plaga : plagas) {
+                if (plaga.getNombrePlaga().equals(nombrePlagaSeleccionada) && 
+                    plaga.getTipoPlaga().equals(tipoPlagaSeleccionada)) {
+                    idPlagaSeleccionada = plaga.getIdPlaga();
+                    break;
+                }
+            }
+            
+            // Llenar formulario con datos visibles
+            txtNombrePlaga.setText(nombrePlagaSeleccionada);
+            txtTipoPlaga.setText(tipoPlagaSeleccionada);
+            txtCultivosAsociados.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
         }
     }
 
@@ -313,7 +328,8 @@ public class GestionPlagas extends JFrame {
     }
 
     private void actualizarPlaga() {
-        if (txtId.getText().isEmpty()) {
+        // MODIFICADO: Usar idPlagaSeleccionada en lugar de txtId
+        if (idPlagaSeleccionada == -1) {
             mostrarMensajeError("Seleccione una plaga de la tabla para actualizar");
             return;
         }
@@ -324,7 +340,7 @@ public class GestionPlagas extends JFrame {
 
         try {
             Plaga plaga = new Plaga();
-            plaga.setIdPlaga(Integer.parseInt(txtId.getText()));
+            plaga.setIdPlaga(idPlagaSeleccionada); // Usar el ID almacenado internamente
             plaga.setNombrePlaga(txtNombrePlaga.getText().trim());
             plaga.setTipoPlaga(txtTipoPlaga.getText().trim());
             plaga.setCultivosAsociados(txtCultivosAsociados.getText().trim());
@@ -348,13 +364,17 @@ public class GestionPlagas extends JFrame {
             return;
         }
 
-        int idPlaga = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String nombrePlaga = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        // MODIFICADO: Usar idPlagaSeleccionada en lugar de obtenerlo de la tabla
+        if (idPlagaSeleccionada == -1) {
+            mostrarMensajeError("No se pudo identificar la plaga seleccionada");
+            return;
+        }
+
+        String nombrePlaga = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea eliminar la plaga?\n" +
-            "Nombre: " + nombrePlaga + "\n" +
-            "ID: " + idPlaga + "\n\n" +
+            "Nombre: " + nombrePlaga + "\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar Eliminación",
             JOptionPane.YES_NO_OPTION,
@@ -362,7 +382,7 @@ public class GestionPlagas extends JFrame {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                if (controller.eliminarPlaga(idPlaga)) {
+                if (controller.eliminarPlaga(idPlagaSeleccionada)) {
                     mostrarMensajeExito("Plaga eliminada exitosamente");
                     cargarDatos();
                     limpiarFormulario();
@@ -390,8 +410,8 @@ public class GestionPlagas extends JFrame {
                     mostrarMensajeInformacion("No se encontraron plagas con el criterio: " + criterio);
                 } else {
                     for (Plaga plaga : resultados) {
+                        // MODIFICADO: No mostrar el ID en la tabla
                         Object[] fila = {
-                            plaga.getIdPlaga(),
                             plaga.getNombrePlaga(),
                             plaga.getTipoPlaga(),
                             plaga.getCultivosAsociados()

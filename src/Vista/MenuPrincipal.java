@@ -1,6 +1,6 @@
 package vista;
 
-import controlador.MainController;
+import controlador.SesionUsuario;
 import javax.swing.*;
 import java.awt.*;
 
@@ -277,7 +277,7 @@ public class MenuPrincipal extends JFrame {
                 "Cerrar Sesión",
                 JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                MainController.getInstance().cerrarSesion();
+                cerrarSesion();
             }
         });
         
@@ -290,6 +290,28 @@ public class MenuPrincipal extends JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 System.exit(0);  // Termina la aplicación completamente
             }
+        });
+    }
+
+    /**
+     * Actualiza la etiqueta del usuario actual en la interfaz
+     * @param usuario Nombre del usuario que ha iniciado sesión
+     */
+    public void setUsuarioActual(String usuario) {
+        lblUsuario.setText("Usuario: " + usuario);
+    }
+
+    // MÉTODO CORREGIDO: Cerrar sesión correctamente
+    private void cerrarSesion() {
+        // Cerrar sesión en el sistema
+        SesionUsuario.getInstance().cerrarSesion();
+        
+        // Cerrar esta ventana actual
+        this.dispose();
+        
+        // Abrir ventana de login
+        SwingUtilities.invokeLater(() -> {
+            new Login().setVisible(true);
         });
     }
 

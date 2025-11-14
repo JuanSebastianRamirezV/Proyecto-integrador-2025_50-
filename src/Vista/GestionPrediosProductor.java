@@ -10,23 +10,21 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
-public class GestionPredios extends JFrame {
+public class GestionPrediosProductor extends JFrame {
     private JTable tablaPredios;
     private DefaultTableModel modeloTabla;
     private JTextField txtNombrePredio, txtNombrePropietario;
     private JComboBox<String> comboMunicipios;
-    private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
+    private JButton btnAgregar, btnActualizar, btnLimpiar, btnBuscar, btnRefrescar;
     private PredioController controller;
     private MunicipioController municipioController;
     
     // Lista para almacenar los municipios y sus IDs
     private java.util.Map<String, Integer> mapaMunicipios;
+    // Variable para almacenar el ID del predio seleccionado internamente
+    private int idPredioSeleccionado = -1;
 
-    /**
-     * Constructor principal de la clase GestionPredios
-     * Inicializa el controlador y los componentes de la interfaz
-     */
-    public GestionPredios() {
+    public GestionPrediosProductor() {
         this.controller = new PredioController();
         this.municipioController = new MunicipioController();
         this.mapaMunicipios = new java.util.HashMap<>();
@@ -35,29 +33,19 @@ public class GestionPredios extends JFrame {
         cargarDatos();
     }
 
-    /**
-     * Inicializa y configura todos los componentes visuales de la interfaz
-     * Establece el diseño principal, tamaño, posición y comportamiento de la ventana
-     */
     private void initComponents() {
-        setTitle("Gestión de Predios - CRUD Completo");
+        setTitle("Gestión de Predios - Modo Productor");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1100, 650);
         setLocationRelativeTo(null);
         setResizable(true);
 
-        // Panel principal
         JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         panelPrincipal.setBackground(new Color(240, 240, 240));
 
-        // Panel de formulario
         JPanel panelFormulario = crearPanelFormulario();
-
-        // Panel de botones principales
         JPanel panelBotonesPrincipales = crearPanelBotonesPrincipales();
-
-        // Crear tabla y scroll pane directamente
         JScrollPane scrollTabla = crearScrollTabla();
 
         panelPrincipal.add(panelFormulario, BorderLayout.WEST);
@@ -68,12 +56,6 @@ public class GestionPredios extends JFrame {
         agregarActionListeners();
     }
 
-    /**
-     * Crea y configura el panel del formulario para ingreso de datos de predios
-     * Utiliza GridBagLayout para un diseño organizado y flexible
-     * 
-     * @return JPanel configurado con todos los campos del formulario
-     */
     private JPanel crearPanelFormulario() {
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
@@ -127,12 +109,6 @@ public class GestionPredios extends JFrame {
         return panelFormulario;
     }
 
-    /**
-     * Crea y configura el componente de tabla con scroll para mostrar los predios
-     * Incluye personalización visual con colores alternados y selección
-     * 
-     * @return JScrollPane que contiene la tabla de predios
-     */
     private JScrollPane crearScrollTabla() {
         modeloTabla = new DefaultTableModel() {
             @Override
@@ -187,42 +163,25 @@ public class GestionPredios extends JFrame {
         return scrollTabla;
     }
 
-    /**
-     * Crea el panel de botones principales para operaciones CRUD
-     * 
-     * @return JPanel con los botones de acciones principales
-     */
     private JPanel crearPanelBotonesPrincipales() {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         panelBotones.setBackground(new Color(240, 240, 240));
         
         btnAgregar = crearBoton("Agregar Predio", new Color(39, 174, 96));
         btnActualizar = crearBoton("Actualizar Predio", new Color(41, 128, 185));
-        btnEliminar = crearBoton("Eliminar Predio", new Color(231, 76, 60));
         btnRefrescar = crearBoton("Refrescar Datos", new Color(155, 89, 182));
         
-        // Tooltips para mejor usabilidad
         btnAgregar.setToolTipText("Agregar un nuevo predio a la base de datos");
         btnActualizar.setToolTipText("Actualizar el predio seleccionado");
-        btnEliminar.setToolTipText("Eliminar el predio seleccionado");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
 
-        // Agregar botones al panel
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
         panelBotones.add(btnRefrescar);
         
         return panelBotones;
     }
 
-    /**
-     * Factory method para crear botones estilizados consistentes
-     * 
-     * @param texto Texto que muestra el botón
-     * @param color Color de fondo del botón
-     * @return JButton configurado con el estilo de la aplicación
-     */
     private JButton crearBoton(String texto, Color color) {
         JButton boton = new JButton(texto);
         boton.setBackground(color);
@@ -234,14 +193,9 @@ public class GestionPredios extends JFrame {
         return boton;
     }
 
-    /**
-     * Configura todos los ActionListeners para los componentes de la interfaz
-     * Conecta los eventos de usuario con los métodos correspondientes
-     */
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarPredio());
         btnActualizar.addActionListener(e -> actualizarPredio());
-        btnEliminar.addActionListener(e -> eliminarPredio());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscar.addActionListener(e -> buscarPredios());
         btnRefrescar.addActionListener(e -> {
@@ -357,6 +311,7 @@ public class GestionPredios extends JFrame {
         txtNombrePropietario.setText("");
         comboMunicipios.setSelectedIndex(0);
         tablaPredios.clearSelection();
+        idPredioSeleccionado = -1; // Reiniciar ID seleccionado
         txtNombrePredio.requestFocus();
     }
 
@@ -369,44 +324,56 @@ public class GestionPredios extends JFrame {
             // Obtener y seleccionar el municipio en el ComboBox
             String nombreMunicipio = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
             seleccionarMunicipioEnCombo(nombreMunicipio);
+            
+            // Buscar el predio para obtener su ID internamente
+            String nombrePredioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+            String nombrePropietarioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            
+            List<Predio> predios = controller.buscarPredios(nombrePredioSeleccionado);
+            for (Predio predio : predios) {
+                if (predio.getNombrePredio().equals(nombrePredioSeleccionado) && 
+                    predio.getNombrePropietario().equals(nombrePropietarioSeleccionado)) {
+                    idPredioSeleccionado = predio.getIdPredio();
+                    break;
+                }
+            }
         }
     }
 
     private void agregarPredio() {
-        if (!validarCamposObligatorios()) {
-            return;
-        }
-
-        try {
-            Predio nuevoPredio = new Predio();
-            // NO establecer setIdPredio() - se generará automáticamente con SEQ_PREDIO.NEXTVAL
-            nuevoPredio.setNombrePredio(txtNombrePredio.getText().trim());
-            nuevoPredio.setNombrePropietario(txtNombrePropietario.getText().trim());
-
-            // ✅ Obtener el ID del municipio a partir del nombre seleccionado
-            int idMunicipio = obtenerIdMunicipioSeleccionado();
-            if (idMunicipio == -1) {
-                mostrarMensajeError("Error: No se pudo obtener el ID del municipio seleccionado");
-                return;
-            }
-            nuevoPredio.setIdMunicipio(idMunicipio);
-
-            if (controller.agregarPredio(nuevoPredio)) {
-                mostrarMensajeExito("Predio agregado exitosamente");
-                cargarDatos();
-                limpiarFormulario();
-            } else {
-                mostrarMensajeError("Error al agregar el predio a la base de datos");
-            }
-        } catch (Exception ex) {
-            mostrarMensajeError("Error inesperado: " + ex.getMessage());
-            ex.printStackTrace(); // ✅ Para ver el error completo
-        }
+    if (!validarCamposObligatorios()) {
+        return;
     }
 
+    try {
+        Predio nuevoPredio = new Predio();
+        nuevoPredio.setNombrePredio(txtNombrePredio.getText().trim());
+        nuevoPredio.setNombrePropietario(txtNombrePropietario.getText().trim());
+        
+        // ✅ CORREGIDO: Obtener el ID del municipio y establecerlo en el objeto Predio
+        int idMunicipio = obtenerIdMunicipioSeleccionado();
+        if (idMunicipio == -1) {
+            mostrarMensajeError("Error: No se pudo obtener el ID del municipio seleccionado");
+            return;
+        }
+        nuevoPredio.setIdMunicipio(idMunicipio);
+
+        // ✅ CORREGIDO: Usar el método correcto del controlador (solo el objeto Predio)
+        if (controller.agregarPredio(nuevoPredio)) {
+            mostrarMensajeExito("Predio agregado exitosamente");
+            cargarDatos();
+            limpiarFormulario();
+        } else {
+            mostrarMensajeError("Error al agregar el predio a la base de datos");
+        }
+    } catch (Exception ex) {
+        mostrarMensajeError("Error inesperado: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+}
+
     private void actualizarPredio() {
-        int filaSeleccionada = tablaPredios.getSelectedRow();
-        if (filaSeleccionada < 0) {
+        if (idPredioSeleccionado == -1) {
             mostrarMensajeError("Seleccione un predio de la tabla para actualizar");
             return;
         }
@@ -416,28 +383,8 @@ public class GestionPredios extends JFrame {
         }
 
         try {
-            // Obtener el nombre del predio seleccionado para buscar su ID
-            String nombrePredioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
-            String nombrePropietarioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
-            
-            // Buscar el predio para obtener su ID
-            List<Predio> predios = controller.buscarPredios(nombrePredioSeleccionado);
-            int idPredio = -1;
-            for (Predio predio : predios) {
-                if (predio.getNombrePredio().equals(nombrePredioSeleccionado) && 
-                    predio.getNombrePropietario().equals(nombrePropietarioSeleccionado)) {
-                    idPredio = predio.getIdPredio();
-                    break;
-                }
-            }
-
-            if (idPredio == -1) {
-                mostrarMensajeError("No se pudo encontrar el predio seleccionado");
-                return;
-            }
-
             Predio predio = new Predio();
-            predio.setIdPredio(idPredio);
+            predio.setIdPredio(idPredioSeleccionado);
             predio.setNombrePredio(txtNombrePredio.getText().trim());
             predio.setNombrePropietario(txtNombrePropietario.getText().trim());
             predio.setIdMunicipio(obtenerIdMunicipioSeleccionado());
@@ -451,58 +398,6 @@ public class GestionPredios extends JFrame {
             }
         } catch (Exception ex) {
             mostrarMensajeError("Error inesperado: " + ex.getMessage());
-        }
-    }
-
-    private void eliminarPredio() {
-        int filaSeleccionada = tablaPredios.getSelectedRow();
-        if (filaSeleccionada < 0) {
-            mostrarMensajeError("Seleccione un predio de la tabla para eliminar");
-            return;
-        }
-
-        // Obtener el nombre del predio seleccionado para buscar su ID
-        String nombrePredioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
-        String nombrePropietarioSeleccionado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
-        
-        // Buscar el predio para obtener su ID
-        List<Predio> predios = controller.buscarPredios(nombrePredioSeleccionado);
-        int idPredio = -1;
-        for (Predio predio : predios) {
-            if (predio.getNombrePredio().equals(nombrePredioSeleccionado) && 
-                predio.getNombrePropietario().equals(nombrePropietarioSeleccionado)) {
-                idPredio = predio.getIdPredio();
-                break;
-            }
-        }
-
-        if (idPredio == -1) {
-            mostrarMensajeError("No se pudo encontrar el predio seleccionado");
-            return;
-        }
-
-        String nombrePredio = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Está seguro que desea eliminar el predio?\n" +
-            "Nombre: " + nombrePredio + "\n\n" +
-            "Esta acción no se puede deshacer.",
-            "Confirmar Eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                if (controller.eliminarPredio(idPredio)) {
-                    mostrarMensajeExito("Predio eliminado exitosamente");
-                    cargarDatos();
-                    limpiarFormulario();
-                } else {
-                    mostrarMensajeError("Error al eliminar el predio de la base de datos");
-                }
-            } catch (Exception ex) {
-                mostrarMensajeError("Error inesperado: " + ex.getMessage());
-            }
         }
     }
 
@@ -586,8 +481,7 @@ public class GestionPredios extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GestionPredios().setVisible(true);
+            new GestionPrediosProductor().setVisible(true);
         });
     }
-    
 }

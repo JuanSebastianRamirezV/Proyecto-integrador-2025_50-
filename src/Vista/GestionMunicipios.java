@@ -11,9 +11,12 @@ import java.util.List;
 public class GestionMunicipios extends JFrame {
     private JTable tablaMunicipios;
     private DefaultTableModel modeloTabla;
-    private JTextField txtId, txtNombre;
+    private JTextField txtNombre;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private final MunicipioController controller;
+    
+    // Variable para almacenar el ID del municipio seleccionado internamente
+    private int idMunicipioSeleccionado = -1;
 
     public GestionMunicipios() {
         this.controller = new MunicipioController();
@@ -64,23 +67,17 @@ public class GestionMunicipios extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Componentes del formulario
+        // ELIMINADO: Campo ID Municipio - ya no se muestra
+        
+        // Solo campo Nombre
         gbc.gridx = 0; gbc.gridy = 0;
-        panelFormulario.add(new JLabel("ID Municipio:"), gbc);
-        gbc.gridx = 1;
-        txtId = new JTextField();
-        txtId.setEditable(false);
-        txtId.setBackground(new Color(240, 240, 240));
-        panelFormulario.add(txtId, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Nombre:*"), gbc);
         gbc.gridx = 1;
         txtNombre = new JTextField();
         panelFormulario.add(txtNombre, gbc);
 
         // Panel de botones del formulario
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 1;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 5, 5, 5);
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -103,7 +100,8 @@ public class GestionMunicipios extends JFrame {
                 return false;
             }
         };
-        modeloTabla.addColumn("ID Municipio");
+        
+        // MODIFICADO: Eliminar columna "ID Municipio" de la vista
         modeloTabla.addColumn("Nombre");
 
         tablaMunicipios = new JTable(modeloTabla);
@@ -203,8 +201,8 @@ public class GestionMunicipios extends JFrame {
             mostrarMensajeInformacion("No hay municipios registrados en la base de datos.");
         } else {
             for (Municipio municipio : municipios) {
+                // MODIFICADO: No mostrar el ID en la tabla, solo el nombre
                 Object[] fila = {
-                    municipio.getIdMunicipio(),
                     municipio.getNombre()
                 };
                 modeloTabla.addRow(fila);
@@ -218,44 +216,67 @@ public class GestionMunicipios extends JFrame {
     }
 
     private void limpiarFormulario() {
-        txtId.setText("");
+        // ELIMINADO: txtId.setText("");
         txtNombre.setText("");
         tablaMunicipios.clearSelection();
+        idMunicipioSeleccionado = -1; // Reiniciar ID seleccionado
         txtNombre.requestFocus();
     }
 
     private void seleccionarMunicipioDeTabla() {
         int filaSeleccionada = tablaMunicipios.getSelectedRow();
         if (filaSeleccionada >= 0) {
-            txtId.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-            txtNombre.setText(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
+            // MODIFICADO: Obtener el nombre del municipio seleccionado para buscar su ID
+            String nombreMunicipio = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+            
+            // Buscar el municipio en la base de datos para obtener su ID
+            List<Municipio> municipios = controller.buscarMunicipios(nombreMunicipio);
+            for (Municipio municipio : municipios) {
+                if (municipio.getNombre().equals(nombreMunicipio)) {
+                    idMunicipioSeleccionado = municipio.getIdMunicipio();
+                    break;
+                }
+            }
+            
+            // Llenar formulario con datos visibles
+            txtNombre.setText(nombreMunicipio);
         }
     }
 
     private void agregarMunicipio() {
-        if (!validarCamposObligatorios()) {
-            return;
-        }
-
-        try {
-            Municipio nuevoMunicipio = new Municipio();
-            // NO establecer setIdMunicipio() - se generará automáticamente
-            nuevoMunicipio.setNombre(txtNombre.getText().trim());
-
-            if (controller.agregarMunicipio(nuevoMunicipio)) {
-                mostrarMensajeExito("Municipio agregado exitosamente");
-                cargarDatos();
-                limpiarFormulario();
-            } else {
-                mostrarMensajeError("Error al agregar el municipio a la base de datos");
-            }
-        } catch (Exception ex) {
-            mostrarMensajeError("Error inesperado: " + ex.getMessage());
-        }
+    if (!validarCamposObligatorios()) {
+        return;
     }
 
+    String nombreMunicipio = txtNombre.getText().trim();
+    
+    // Validación adicional - verificar si ya existe
+    if (controller.existeMunicipio(nombreMunicipio)) {
+        mostrarMensajeError("Ya existe un municipio con el nombre: " + nombreMunicipio);
+        return;
+    }
+
+    try {
+        Municipio nuevoMunicipio = new Municipio();
+        nuevoMunicipio.setNombre(nombreMunicipio);
+
+        // CAMBIO IMPORTANTE: Usar el método que retorna boolean para mantener compatibilidad
+        if (controller.agregarMunicipioBoolean(nuevoMunicipio)) {
+            mostrarMensajeExito("Municipio '" + nombreMunicipio + "' agregado exitosamente");
+            cargarDatos();
+            limpiarFormulario();
+        } else {
+            mostrarMensajeError("Error al agregar el municipio a la base de datos");
+        }
+    } catch (Exception ex) {
+        mostrarMensajeError("Error inesperado: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+}
+
     private void actualizarMunicipio() {
-        if (txtId.getText().isEmpty()) {
+        // MODIFICADO: Usar idMunicipioSeleccionado en lugar de txtId
+        if (idMunicipioSeleccionado == -1) {
             mostrarMensajeError("Seleccione un municipio de la tabla para actualizar");
             return;
         }
@@ -266,7 +287,7 @@ public class GestionMunicipios extends JFrame {
 
         try {
             Municipio municipio = new Municipio();
-            municipio.setIdMunicipio(Integer.parseInt(txtId.getText()));
+            municipio.setIdMunicipio(idMunicipioSeleccionado); // Usar el ID almacenado internamente
             municipio.setNombre(txtNombre.getText().trim());
 
             if (controller.actualizarMunicipio(municipio)) {
@@ -288,13 +309,17 @@ public class GestionMunicipios extends JFrame {
             return;
         }
 
-        int idMunicipio = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String nombreMunicipio = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        // MODIFICADO: Usar idMunicipioSeleccionado en lugar de obtenerlo de la tabla
+        if (idMunicipioSeleccionado == -1) {
+            mostrarMensajeError("No se pudo identificar el municipio seleccionado");
+            return;
+        }
+
+        String nombreMunicipio = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea eliminar el municipio?\n" +
-            "Nombre: " + nombreMunicipio + "\n" +
-            "ID: " + idMunicipio + "\n\n" +
+            "Nombre: " + nombreMunicipio + "\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar Eliminación",
             JOptionPane.YES_NO_OPTION,
@@ -302,7 +327,7 @@ public class GestionMunicipios extends JFrame {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                if (controller.eliminarMunicipio(idMunicipio)) {
+                if (controller.eliminarMunicipio(idMunicipioSeleccionado)) {
                     mostrarMensajeExito("Municipio eliminado exitosamente");
                     cargarDatos();
                     limpiarFormulario();
@@ -330,8 +355,8 @@ public class GestionMunicipios extends JFrame {
                     mostrarMensajeInformacion("No se encontraron municipios con el criterio: " + criterio);
                 } else {
                     for (Municipio municipio : resultados) {
+                        // MODIFICADO: No mostrar el ID en la tabla, solo el nombre
                         Object[] fila = {
-                            municipio.getIdMunicipio(),
                             municipio.getNombre()
                         };
                         modeloTabla.addRow(fila);

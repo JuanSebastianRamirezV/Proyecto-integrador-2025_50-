@@ -1,7 +1,9 @@
 package vista;
 
 import controlador.InspectorController;
+import controlador.SedeICAController;
 import modelo.Inspector;
+import modelo.SedeICA;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -11,10 +13,11 @@ import java.util.List;
 public class GestionInspectores extends JFrame {
     private JTable tablaInspectores;
     private DefaultTableModel modeloTabla;
-    private JTextField txtId, txtNumeroDocumento, txtNombresCompletos, txtTelefono, txtTarjetaProfesional, txtIdSede;
-    private JComboBox<String> cmbTipoDocumento;
+    private JTextField txtId, txtNumeroDocumento, txtNombresCompletos, txtTelefono, txtTarjetaProfesional;
+    private JComboBox<String> cmbTipoDocumento, cmbSedes;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
     private InspectorController controller;
+    private SedeICAController sedeController;
 
     /**
      * Constructor de la clase GestionInspectores
@@ -22,8 +25,10 @@ public class GestionInspectores extends JFrame {
      */
     public GestionInspectores() {
         this.controller = new InspectorController();
+        this.sedeController = new SedeICAController();
         initComponents();
         cargarDatos();
+        cargarSedes();
     }
 
     /**
@@ -81,51 +86,48 @@ public class GestionInspectores extends JFrame {
 
         // Componentes del formulario
         gbc.gridx = 0; gbc.gridy = 0;
-        panelFormulario.add(new JLabel("ID Inspector:"), gbc);
-        gbc.gridx = 1;
-        txtId = new JTextField();
-        txtId.setEditable(false);
-        txtId.setBackground(new Color(240, 240, 240));
-        panelFormulario.add(txtId, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Tipo Documento:*"), gbc);
         gbc.gridx = 1;
         cmbTipoDocumento = new JComboBox<>(new String[]{"CC", "NIT", "Pasaporte", "CE"});
         panelFormulario.add(cmbTipoDocumento, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Número Documento:*"), gbc);
         gbc.gridx = 1;
         txtNumeroDocumento = new JTextField();
         panelFormulario.add(txtNumeroDocumento, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 2;
         panelFormulario.add(new JLabel("Nombres Completos:*"), gbc);
         gbc.gridx = 1;
         txtNombresCompletos = new JTextField();
         panelFormulario.add(txtNombresCompletos, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 3;
         panelFormulario.add(new JLabel("Teléfono:"), gbc);
         gbc.gridx = 1;
         txtTelefono = new JTextField();
         panelFormulario.add(txtTelefono, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 4;
         panelFormulario.add(new JLabel("Tarjeta Profesional:"), gbc);
         gbc.gridx = 1;
         txtTarjetaProfesional = new JTextField();
         panelFormulario.add(txtTarjetaProfesional, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 6;
-        panelFormulario.add(new JLabel("ID Sede:"), gbc);
+        // CAMBIO: En lugar de ID Sede, mostramos las sedes en un ComboBox
+        gbc.gridx = 0; gbc.gridy = 5;
+        panelFormulario.add(new JLabel("Sede:*"), gbc);
         gbc.gridx = 1;
-        txtIdSede = new JTextField();
-        panelFormulario.add(txtIdSede, gbc);
+        cmbSedes = new JComboBox<>();
+        panelFormulario.add(cmbSedes, gbc);
+
+        // Campo oculto para el ID del inspector (para uso interno)
+        txtId = new JTextField();
+        txtId.setVisible(false);
 
         // Panel de botones del formulario
-        gbc.gridx = 0; gbc.gridy = 7;
+        gbc.gridx = 0; gbc.gridy = 6;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 5, 5, 5);
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -154,13 +156,13 @@ public class GestionInspectores extends JFrame {
                 return false;
             }
         };
-        modeloTabla.addColumn("ID");
+        // CAMBIO: Eliminar columna ID de la tabla
         modeloTabla.addColumn("Tipo Documento");
         modeloTabla.addColumn("Número Documento");
         modeloTabla.addColumn("Nombres Completos");
         modeloTabla.addColumn("Teléfono");
         modeloTabla.addColumn("Tarjeta Profesional");
-        modeloTabla.addColumn("ID Sede");
+        modeloTabla.addColumn("Teléfono Sede");
 
         tablaInspectores = new JTable(modeloTabla);
         tablaInspectores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -169,7 +171,7 @@ public class GestionInspectores extends JFrame {
         tablaInspectores.getTableHeader().setForeground(Color.WHITE);
         tablaInspectores.setRowHeight(25);
         
-        // Renderer para filas alternadas - CORREGIDO
+        // Renderer para filas alternadas
         tablaInspectores.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -178,7 +180,7 @@ public class GestionInspectores extends JFrame {
                 
                 if (!isSelected) {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                    c.setForeground(Color.BLACK); // ← CORRECCIÓN APLICADA: Texto negro para filas no seleccionadas
+                    c.setForeground(Color.BLACK);
                 } else {
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
@@ -250,6 +252,50 @@ public class GestionInspectores extends JFrame {
         });
     }
 
+    /**
+     * Método para cargar las sedes en el ComboBox
+     */
+    private void cargarSedes() {
+        cmbSedes.removeAllItems();
+        List<SedeICA> sedes = sedeController.obtenerTodasSedesICA();
+        
+        for (SedeICA sede : sedes) {
+            // Mostrar el teléfono de la sede en el ComboBox
+            cmbSedes.addItem(sede.getTelefono() + " - " + sede.getCorreoElectronico());
+        }
+        
+        if (sedes.isEmpty()) {
+            cmbSedes.addItem("No hay sedes disponibles");
+        }
+    }
+
+    /**
+     * Método para obtener el ID de la sede seleccionada
+     */
+    private int obtenerIdSedeSeleccionada() {
+        int selectedIndex = cmbSedes.getSelectedIndex();
+        if (selectedIndex >= 0) {
+            List<SedeICA> sedes = sedeController.obtenerTodasSedesICA();
+            if (selectedIndex < sedes.size()) {
+                return sedes.get(selectedIndex).getIdSede();
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Método para seleccionar la sede en el ComboBox
+     */
+    private void seleccionarSedeEnComboBox(int idSede) {
+        List<SedeICA> sedes = sedeController.obtenerTodasSedesICA();
+        for (int i = 0; i < sedes.size(); i++) {
+            if (sedes.get(i).getIdSede() == idSede) {
+                cmbSedes.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+
     private void cargarDatos() {
         limpiarTabla();
         List<Inspector> inspectores = controller.obtenerTodosInspectores();
@@ -258,14 +304,17 @@ public class GestionInspectores extends JFrame {
             mostrarMensajeInformacion("No hay inspectores registrados en la base de datos.");
         } else {
             for (Inspector inspector : inspectores) {
+                // Obtener información de la sede para mostrar el teléfono
+                SedeICA sede = sedeController.obtenerSedeICA(inspector.getIdSede());
+                String telefonoSede = (sede != null) ? sede.getTelefono() : "N/A";
+                
                 Object[] fila = {
-                    inspector.getIdInspector(),
                     inspector.getTipoDocumento(),
                     inspector.getNumeroDocumento(),
                     inspector.getNombresCompletos(),
                     inspector.getTelefono(),
                     inspector.getNumeroTarjetaProfesional(),
-                    inspector.getIdSede()
+                    telefonoSede
                 };
                 modeloTabla.addRow(fila);
             }
@@ -284,7 +333,9 @@ public class GestionInspectores extends JFrame {
         txtNombresCompletos.setText("");
         txtTelefono.setText("");
         txtTarjetaProfesional.setText("");
-        txtIdSede.setText("");
+        if (cmbSedes.getItemCount() > 0) {
+            cmbSedes.setSelectedIndex(0);
+        }
         tablaInspectores.clearSelection();
         txtNumeroDocumento.requestFocus();
     }
@@ -292,13 +343,22 @@ public class GestionInspectores extends JFrame {
     private void seleccionarInspectorDeTabla() {
         int filaSeleccionada = tablaInspectores.getSelectedRow();
         if (filaSeleccionada >= 0) {
-            txtId.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-            cmbTipoDocumento.setSelectedItem(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
-            txtNumeroDocumento.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
-            txtNombresCompletos.setText(modeloTabla.getValueAt(filaSeleccionada, 3).toString());
-            txtTelefono.setText(modeloTabla.getValueAt(filaSeleccionada, 4).toString());
-            txtTarjetaProfesional.setText(modeloTabla.getValueAt(filaSeleccionada, 5).toString());
-            txtIdSede.setText(modeloTabla.getValueAt(filaSeleccionada, 6).toString());
+            // Obtener el inspector real usando los datos visibles
+            String numeroDocumento = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            List<Inspector> inspectores = controller.buscarInspectores(numeroDocumento);
+            
+            if (!inspectores.isEmpty()) {
+                Inspector inspector = inspectores.get(0);
+                txtId.setText(String.valueOf(inspector.getIdInspector()));
+                cmbTipoDocumento.setSelectedItem(inspector.getTipoDocumento());
+                txtNumeroDocumento.setText(inspector.getNumeroDocumento());
+                txtNombresCompletos.setText(inspector.getNombresCompletos());
+                txtTelefono.setText(inspector.getTelefono());
+                txtTarjetaProfesional.setText(inspector.getNumeroTarjetaProfesional());
+                
+                // Seleccionar la sede correspondiente en el ComboBox
+                seleccionarSedeEnComboBox(inspector.getIdSede());
+            }
         }
     }
 
@@ -307,15 +367,25 @@ public class GestionInspectores extends JFrame {
             return;
         }
 
+        String numeroDocumento = txtNumeroDocumento.getText().trim();
+
+        // ✅ VALIDACIÓN CRÍTICA: Verificar si ya existe un inspector con ese número de documento
+        if (controller.existeInspector(numeroDocumento)) {
+            mostrarMensajeError("Error: Ya existe un inspector con el número de documento: '" + numeroDocumento + "'\n" +
+                               "Por favor, ingrese un número diferente.");
+            txtNumeroDocumento.requestFocus();
+            txtNumeroDocumento.selectAll();
+            return;
+        }
+
         try {
             Inspector nuevoInspector = new Inspector();
-            // NO establecer setIdInspector - se generará automáticamente
             nuevoInspector.setTipoDocumento(cmbTipoDocumento.getSelectedItem().toString());
-            nuevoInspector.setNumeroDocumento(txtNumeroDocumento.getText().trim());
+            nuevoInspector.setNumeroDocumento(numeroDocumento);
             nuevoInspector.setNombresCompletos(txtNombresCompletos.getText().trim());
             nuevoInspector.setTelefono(txtTelefono.getText().trim());
             nuevoInspector.setNumeroTarjetaProfesional(txtTarjetaProfesional.getText().trim());
-            nuevoInspector.setIdSede(parseInt(txtIdSede.getText().trim()));
+            nuevoInspector.setIdSede(obtenerIdSedeSeleccionada());
 
             if (controller.agregarInspector(nuevoInspector)) {
                 mostrarMensajeExito("Inspector agregado exitosamente");
@@ -347,7 +417,7 @@ public class GestionInspectores extends JFrame {
             inspector.setNombresCompletos(txtNombresCompletos.getText().trim());
             inspector.setTelefono(txtTelefono.getText().trim());
             inspector.setNumeroTarjetaProfesional(txtTarjetaProfesional.getText().trim());
-            inspector.setIdSede(parseInt(txtIdSede.getText().trim()));
+            inspector.setIdSede(obtenerIdSedeSeleccionada());
 
             if (controller.actualizarInspector(inspector)) {
                 mostrarMensajeExito("Inspector actualizado exitosamente");
@@ -368,13 +438,22 @@ public class GestionInspectores extends JFrame {
             return;
         }
 
-        int idInspector = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String nombreInspector = modeloTabla.getValueAt(filaSeleccionada, 3).toString();
+        // Obtener el ID del inspector usando los datos visibles
+        String numeroDocumento = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        List<Inspector> inspectores = controller.buscarInspectores(numeroDocumento);
+        
+        if (inspectores.isEmpty()) {
+            mostrarMensajeError("No se pudo encontrar el inspector seleccionado");
+            return;
+        }
+
+        int idInspector = inspectores.get(0).getIdInspector();
+        String nombreInspector = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea eliminar el inspector?\n" +
             "Nombre: " + nombreInspector + "\n" +
-            "ID: " + idInspector + "\n\n" +
+            "Documento: " + numeroDocumento + "\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar Eliminación",
             JOptionPane.YES_NO_OPTION,
@@ -410,14 +489,17 @@ public class GestionInspectores extends JFrame {
                     mostrarMensajeInformacion("No se encontraron inspectores con el criterio: " + criterio);
                 } else {
                     for (Inspector inspector : resultados) {
+                        // Obtener información de la sede para mostrar el teléfono
+                        SedeICA sede = sedeController.obtenerSedeICA(inspector.getIdSede());
+                        String telefonoSede = (sede != null) ? sede.getTelefono() : "N/A";
+                        
                         Object[] fila = {
-                            inspector.getIdInspector(),
                             inspector.getTipoDocumento(),
                             inspector.getNumeroDocumento(),
                             inspector.getNombresCompletos(),
                             inspector.getTelefono(),
                             inspector.getNumeroTarjetaProfesional(),
-                            inspector.getIdSede()
+                            telefonoSede
                         };
                         modeloTabla.addRow(fila);
                     }
@@ -444,18 +526,12 @@ public class GestionInspectores extends JFrame {
             return false;
         }
 
-        return true;
-    }
+        if (cmbSedes.getSelectedIndex() < 0 || cmbSedes.getItemCount() == 0) {
+            mostrarMensajeError("Debe seleccionar una sede");
+            return false;
+        }
 
-    private int parseInt(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+        return true;
     }
 
     private void mostrarMensajeExito(String mensaje) {

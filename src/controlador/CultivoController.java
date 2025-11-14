@@ -17,6 +17,8 @@ package controlador;
 
 import modelo.Cultivo;
 import modelo.CultivoDAO;
+import modelo.Predio;
+import modelo.PredioDAO;
 import java.util.List;
 
 public class CultivoController {
@@ -26,6 +28,7 @@ public class CultivoController {
      * de cultivos. Proporciona los métodos para interactuar con la base de datos.
      */
     private CultivoDAO cultivoDAO;
+    private PredioDAO predioDAO;
 
     /**
      * Constructor de la clase CultivoController.
@@ -38,6 +41,7 @@ public class CultivoController {
      */
     public CultivoController() {
         this.cultivoDAO = new CultivoDAO();
+        this.predioDAO = new PredioDAO();
     }
 
     /**
@@ -243,6 +247,30 @@ public class CultivoController {
     }
 
     /**
+     * Verifica si ya existe un cultivo con el mismo nombre en el mismo predio, excluyendo un ID específico.
+     * Útil para validaciones durante la actualización de cultivos existentes.
+     * 
+     * @param nombreCultivo Nombre del cultivo a verificar. No debe ser nulo ni vacío.
+     * @param idPredio Identificador del predio. Debe ser mayor a 0.
+     * @param idCultivoExcluir ID del cultivo a excluir de la verificación (normalmente el que se está actualizando).
+     * @return boolean - true si ya existe otro cultivo con ese nombre en el predio, false en caso contrario
+     * 
+     * @throws IllegalArgumentException si el nombreCultivo es nulo/vacío o idPredio no es válido
+     * 
+     * Precondiciones:
+     * - El nombre del cultivo debe ser una cadena válida
+     * - El ID del predio debe ser válido
+     * - El ID a excluir debe ser mayor a 0
+     * 
+     * Postcondiciones:
+     * - Retorna true si existe otro cultivo (diferente al excluido) con el mismo nombre en el mismo predio
+     * - Retorna false si el nombre está disponible para ese predio
+     */
+    public boolean existeNombreCultivoExcluyendoId(String nombreCultivo, int idPredio, int idCultivoExcluir) {
+        return cultivoDAO.existeNombreCultivoExcluyendoId(nombreCultivo, idPredio, idCultivoExcluir);
+    }
+
+    /**
      * Calcula el total de plantas afectadas para todos los cultivos de un predio específico.
      * Proporciona un resumen estadístico del impacto en un predio particular.
      * 
@@ -260,5 +288,60 @@ public class CultivoController {
      */
     public int contarPlantasAfectadasPorPredio(int idPredio) {
         return cultivoDAO.contarPlantasAfectadasPorPredio(idPredio);
+    }
+
+    /**
+     * Obtiene todos los predios para mostrar en el ComboBox de cultivos.
+     * Recupera todos los predios registrados en el sistema para su selección.
+     * 
+     * @return List<Predio> - lista de todos los objetos Predio en el sistema
+     * 
+     * Postcondiciones:
+     * - Retorna una lista de objetos Predio (puede estar vacía si no hay registros)
+     * - La lista no es nula, si no hay registros retorna una lista vacía
+     * - Los objetos Predio en la lista contienen todos sus atributos poblados
+     */
+    public List<Predio> obtenerTodosPrediosParaCultivo() {
+        return predioDAO.obtenerTodos();
+    }
+
+    /**
+     * Obtiene un predio específico mediante su identificador único.
+     * Recupera toda la información de un predio particular desde la base de datos.
+     * 
+     * @param idPredio Identificador único del predio a consultar. Debe ser mayor a 0.
+     * @return Predio - objeto Predio con todos sus datos, o null si no se encuentra
+     * 
+     * @throws IllegalArgumentException si el idPredio no es válido (<= 0)
+     * 
+     * Precondiciones:
+     * - El ID debe corresponder a un predio existente en la base de datos
+     * 
+     * Postcondiciones:
+     * - Retorna el objeto Predio completo si existe
+     * - Retorna null si no se encuentra ningún predio con ese ID
+     */
+    public Predio obtenerPredio(int idPredio) {
+        return predioDAO.obtenerPorId(idPredio);
+    }
+
+    /**
+     * Obtiene un predio por su nombre.
+     * Busca un predio específico utilizando su nombre como criterio.
+     * 
+     * @param nombrePredio Nombre del predio a buscar. No debe ser nulo ni vacío.
+     * @return Predio - objeto Predio con todos sus datos, o null si no se encuentra
+     * 
+     * @throws IllegalArgumentException si el nombrePredio es nulo o vacío
+     * 
+     * Precondiciones:
+     * - El nombre debe corresponder a un predio existente en la base de datos
+     * 
+     * Postcondiciones:
+     * - Retorna el objeto Predio completo si existe
+     * - Retorna null si no se encuentra ningún predio con ese nombre
+     */
+    public Predio obtenerPredioPorNombre(String nombrePredio) {
+        return predioDAO.obtenerPorNombre(nombrePredio);
     }
 }

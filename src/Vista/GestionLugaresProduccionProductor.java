@@ -9,16 +9,17 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
-public class GestionLugaresProduccion extends JFrame {
+public class GestionLugaresProduccionProductor extends JFrame {
     
     private JTable tablaLugares;
     private DefaultTableModel modeloTabla;
     private JTextField txtId, txtNombre, txtRegistroICA, txtDireccion;
     private JComboBox<Productor> comboProductores;
-    private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
+    private JButton btnAgregar, btnActualizar, btnLimpiar, btnBuscar, btnRefrescar;
+    
     private LugarProduccionController controller;
 
-    public GestionLugaresProduccion() {
+    public GestionLugaresProduccionProductor() {
         this.controller = new LugarProduccionController();
         initComponents();
         cargarDatos();
@@ -26,7 +27,7 @@ public class GestionLugaresProduccion extends JFrame {
     }
 
     private void initComponents() {
-        setTitle("Gestión de Lugares de Producción - CRUD Completo");
+        setTitle("Gestión de Lugares de Producción - Modo Productor");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1200, 700);
         setLocationRelativeTo(null);
@@ -119,6 +120,7 @@ public class GestionLugaresProduccion extends JFrame {
                 return false;
             }
         };
+        
         // QUITAR la columna ID - solo mostrar datos visibles al usuario
         modeloTabla.addColumn("Nombre");
         modeloTabla.addColumn("Registro ICA");
@@ -168,17 +170,14 @@ public class GestionLugaresProduccion extends JFrame {
         
         btnAgregar = crearBoton("Agregar Lugar", new Color(39, 174, 96));
         btnActualizar = crearBoton("Actualizar Lugar", new Color(41, 128, 185));
-        btnEliminar = crearBoton("Eliminar Lugar", new Color(231, 76, 60));
         btnRefrescar = crearBoton("Refrescar Datos", new Color(155, 89, 182));
         
         btnAgregar.setToolTipText("Agregar un nuevo lugar de producción a la base de datos");
         btnActualizar.setToolTipText("Actualizar el lugar de producción seleccionado");
-        btnEliminar.setToolTipText("Eliminar el lugar de producción seleccionado");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
         
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
         panelBotones.add(btnRefrescar);
         
         return panelBotones;
@@ -198,7 +197,6 @@ public class GestionLugaresProduccion extends JFrame {
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarLugar());
         btnActualizar.addActionListener(e -> actualizarLugar());
-        btnEliminar.addActionListener(e -> eliminarLugar());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscar.addActionListener(e -> buscarLugares());
         btnRefrescar.addActionListener(e -> cargarDatos());
@@ -370,45 +368,6 @@ public class GestionLugaresProduccion extends JFrame {
         }
     }
 
-    private void eliminarLugar() {
-        int filaSeleccionada = tablaLugares.getSelectedRow();
-        if (filaSeleccionada < 0) {
-            mostrarMensajeError("Seleccione un lugar de la tabla para eliminar");
-            return;
-        }
-
-        // Obtener el ID del lugar seleccionado usando el campo oculto
-        if (txtId.getText().isEmpty()) {
-            mostrarMensajeError("No se pudo identificar el lugar seleccionado");
-            return;
-        }
-
-        int idLugar = Integer.parseInt(txtId.getText());
-        String nombreLugar = txtNombre.getText();
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Está seguro que desea eliminar el lugar de producción?\n" +
-            "Nombre: " + nombreLugar + "\n\n" +
-            "Esta acción no se puede deshacer.",
-            "Confirmar Eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                if (controller.eliminarLugarProduccion(idLugar)) {
-                    mostrarMensajeExito("Lugar de producción eliminado exitosamente");
-                    cargarDatos();
-                    limpiarFormulario();
-                } else {
-                    mostrarMensajeError("Error al eliminar el lugar de producción de la base de datos");
-                }
-            } catch (Exception ex) {
-                mostrarMensajeError("Error inesperado: " + ex.getMessage());
-            }
-        }
-    }
-
     private void buscarLugares() {
         String criterio = JOptionPane.showInputDialog(this, 
             "Ingrese el nombre, registro ICA, dirección o nombre del productor a buscar:",
@@ -472,7 +431,7 @@ public class GestionLugaresProduccion extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GestionLugaresProduccion().setVisible(true);
+            new GestionLugaresProduccionProductor().setVisible(true);
         });
     }
 }

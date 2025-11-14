@@ -34,4 +34,15 @@ public class SedeICAController {
     public List<SedeICA> buscarSedesICA(String criterio) {
         return sedeICADAO.buscar(criterio);
     }
+    public boolean existeSedeICA(String correoElectronico) {
+        return sedeICADAO.existeCorreoElectronico(correoElectronico);
+    }
+    
+    public boolean existeSedeICAPorCorreo(String correoElectronico) {
+        return sedeICADAO.existeCorreoElectronico(correoElectronico);
+    }
+
+    public boolean existeSedeICAPorTelefono(String telefono) {
+        return sedeICADAO.existeTelefono(telefono);
+    }
 }

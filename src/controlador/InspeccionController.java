@@ -101,4 +101,5 @@ public class InspeccionController {
     public List<Inspeccion> buscarInspecciones(String criterio) {
         return inspeccionDAO.buscar(criterio);
     }
+    
 }

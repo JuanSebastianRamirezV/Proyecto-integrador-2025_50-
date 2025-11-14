@@ -2,6 +2,7 @@ package vista;
 
 import controlador.CultivoController;
 import modelo.Cultivo;
+import modelo.Predio;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -9,21 +10,18 @@ import java.awt.*;
 import static java.lang.Integer.parseInt;
 import java.util.List;
 
-// Clase principal para la gestión de cultivos con interfaz gráfica tipo CRUD (Crear, Leer, Actualizar y Eliminar)
-public class GestionCultivos extends JFrame {
-    // Componentes de la tabla y su modelo
+public class GestionCultivosProductor extends JFrame {
+    
     private JTable tablaCultivos;
     private DefaultTableModel modeloTabla;
     private JTextField txtId, txtNombreCultivo, txtPlantasAfectadas, txtTotalPlantas, txtEstadoPlanta;
     private JComboBox<String> comboPredios;
-    private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar;
+    private JButton btnAgregar, btnActualizar, btnLimpiar, btnBuscar, btnRefrescar;
     private CultivoController controller;
     
-    // Mapa para almacenar los predios y sus IDs
     private java.util.Map<String, Integer> mapaPredios;
 
-    // Constructor principal: inicializa el controlador, configura la interfaz e inmediatamente carga los datos
-    public GestionCultivos() {
+    public GestionCultivosProductor() {
         this.controller = new CultivoController();
         this.mapaPredios = new java.util.HashMap<>();
         initComponents();
@@ -31,41 +29,29 @@ public class GestionCultivos extends JFrame {
         cargarDatos();
     }
 
-    // Método que inicializa y organiza todos los componentes gráficos de la ventana
     private void initComponents() {
-        setTitle("Gestión de Cultivos - CRUD Completo"); // Título de la ventana
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Al cerrar solo se cierra esta ventana
+        setTitle("Gestión de Cultivos - Modo Productor");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1100, 600); // Tamaño aumentado para nueva columna
-        setLocationRelativeTo(null); // Centrar en pantalla
-        setResizable(true); // Permitir que el usuario cambie el tamaño
+        setLocationRelativeTo(null);
+        setResizable(true);
 
-        // Panel principal que contiene todo
         JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         panelPrincipal.setBackground(new Color(240, 240, 240));
 
-        // Panel donde están los campos de texto (lado izquierdo)
         JPanel panelFormulario = crearPanelFormulario();
-
-        // Panel donde están los botones de acciones CRUD (parte inferior)
         JPanel panelBotonesPrincipales = crearPanelBotonesPrincipales();
-
-        // Tabla con scroll para ver registros (centro)
         JScrollPane scrollTabla = crearScrollTabla();
 
-        // Se agregan los paneles organizadamente
         panelPrincipal.add(panelFormulario, BorderLayout.WEST);
         panelPrincipal.add(scrollTabla, BorderLayout.CENTER);
         panelPrincipal.add(panelBotonesPrincipales, BorderLayout.SOUTH);
 
-        // Se agrega a la ventana principal
         add(panelPrincipal);
-
-        // Se conectan los botones con sus acciones correspondientes
         agregarActionListeners();
     }
 
-    // Método que construye el panel del formulario con GridBagLayout
     private JPanel crearPanelFormulario() {
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
@@ -73,12 +59,12 @@ public class GestionCultivos extends JFrame {
             "Datos del Cultivo"
         ));
         panelFormulario.setBackground(Color.WHITE);
-        panelFormulario.setPreferredSize(new Dimension(350, 0)); // Ancho reducido
+        panelFormulario.setPreferredSize(new Dimension(350, 0));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes entre componentes
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Que ocupen todo el ancho posible
-        gbc.weightx = 1.0; // Expansión horizontal
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
 
         // Campo ID (OCULTO - solo para uso interno)
         txtId = new JTextField();
@@ -112,24 +98,25 @@ public class GestionCultivos extends JFrame {
         txtEstadoPlanta = new JTextField();
         panelFormulario.add(txtEstadoPlanta, gbc);
 
-        // Campo Predio (ComboBox en lugar de texto)
+        // Combo Box para Predio
         gbc.gridx = 0; gbc.gridy = 4;
         panelFormulario.add(new JLabel("Predio:*"), gbc);
         gbc.gridx = 1;
         comboPredios = new JComboBox<>();
         comboPredios.addItem("Seleccione un predio");
+        comboPredios.setBackground(Color.WHITE);
         panelFormulario.add(comboPredios, gbc);
 
-        // Panel de botones que acompañan el formulario (limpiar y buscar)
+        // Panel inferior con botones de formulario
         gbc.gridx = 0; gbc.gridy = 5;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 5, 5, 5);
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
         panelBotonesForm.setBackground(Color.WHITE);
-
+        
         btnLimpiar = crearBoton("Limpiar", new Color(243, 156, 18));
         btnBuscar = crearBoton("Buscar", new Color(52, 152, 219));
-
+        
         panelBotonesForm.add(btnLimpiar);
         panelBotonesForm.add(btnBuscar);
         panelFormulario.add(panelBotonesForm, gbc);
@@ -137,14 +124,14 @@ public class GestionCultivos extends JFrame {
         return panelFormulario;
     }
 
-    // Método que crea la tabla con sus columnas y estilo visual
     private JScrollPane crearScrollTabla() {
         modeloTabla = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // las celdas no se pueden editar directamente
+                return false;
             }
         };
+        
         // ✅ COLUMNAS ACTUALIZADAS CON "TOTAL PLANTAS"
         modeloTabla.addColumn("Nombre Cultivo");
         modeloTabla.addColumn("Total Plantas"); // ✅ NUEVA COLUMNA
@@ -159,19 +146,22 @@ public class GestionCultivos extends JFrame {
         tablaCultivos.getTableHeader().setForeground(Color.WHITE);
         tablaCultivos.setRowHeight(25);
         
-        // Renderer para dar color alternado a las filas y resaltar selección
         tablaCultivos.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 
-                if (!isSelected) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
-                    c.setForeground(Color.BLACK);
-                } else {
+                if (isSelected) {
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
+                } else {
+                    if (row % 2 == 0) {
+                        c.setBackground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                    }
+                    c.setForeground(Color.BLACK);
                 }
                 return c;
             }
@@ -186,31 +176,25 @@ public class GestionCultivos extends JFrame {
         return scrollTabla;
     }
 
-    // Método que crea el panel de botones principales (agregar, actualizar, eliminar, refrescar)
     private JPanel crearPanelBotonesPrincipales() {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         panelBotones.setBackground(new Color(240, 240, 240));
         
         btnAgregar = crearBoton("Agregar Cultivo", new Color(39, 174, 96));
         btnActualizar = crearBoton("Actualizar Cultivo", new Color(41, 128, 185));
-        btnEliminar = crearBoton("Eliminar Cultivo", new Color(231, 76, 60));
         btnRefrescar = crearBoton("Refrescar Datos", new Color(155, 89, 182));
         
-        // Tooltips para mejorar la usabilidad
         btnAgregar.setToolTipText("Agregar un nuevo cultivo a la base de datos");
         btnActualizar.setToolTipText("Actualizar el cultivo seleccionado");
-        btnEliminar.setToolTipText("Eliminar el cultivo seleccionado");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
         
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
-        panelBotones.add(btnEliminar);
         panelBotones.add(btnRefrescar);
         
         return panelBotones;
     }
 
-    // Método auxiliar para crear botones con estilo uniforme
     private JButton crearBoton(String texto, Color color) {
         JButton boton = new JButton(texto);
         boton.setBackground(color);
@@ -222,11 +206,9 @@ public class GestionCultivos extends JFrame {
         return boton;
     }
 
-    // Método que conecta los botones con sus acciones correspondientes
     private void agregarActionListeners() {
         btnAgregar.addActionListener(e -> agregarCultivo());
         btnActualizar.addActionListener(e -> actualizarCultivo());
-        btnEliminar.addActionListener(e -> eliminarCultivo());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscar.addActionListener(e -> buscarCultivos());
         btnRefrescar.addActionListener(e -> {
@@ -234,7 +216,6 @@ public class GestionCultivos extends JFrame {
             cargarDatos();
         });
 
-        // Al seleccionar un cultivo de la tabla, se cargan los datos en el formulario
         tablaCultivos.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tablaCultivos.getSelectedRow() != -1) {
                 seleccionarCultivoDeTabla();
@@ -242,20 +223,17 @@ public class GestionCultivos extends JFrame {
         });
     }
 
-    /**
-     * Carga los predios desde la base de datos al ComboBox
-     */
     private void cargarPredios() {
         comboPredios.removeAllItems();
         comboPredios.addItem("Seleccione un predio");
         mapaPredios.clear();
         
-        List<modelo.Predio> predios = controller.obtenerTodosPrediosParaCultivo();
+        List<Predio> predios = controller.obtenerTodosPrediosParaCultivo();
         
         // Ordenar los predios alfabéticamente por nombre
         predios.sort((p1, p2) -> p1.getNombrePredio().compareToIgnoreCase(p2.getNombrePredio()));
         
-        for (modelo.Predio predio : predios) {
+        for (Predio predio : predios) {
             String nombrePredio = predio.getNombrePredio();
             comboPredios.addItem(nombrePredio);
             mapaPredios.put(nombrePredio, predio.getIdPredio());
@@ -266,9 +244,6 @@ public class GestionCultivos extends JFrame {
         }
     }
 
-    /**
-     * Obtiene el ID del predio seleccionado en el ComboBox
-     */
     private int obtenerIdPredioSeleccionado() {
         String predioSeleccionado = (String) comboPredios.getSelectedItem();
         if (predioSeleccionado != null && !predioSeleccionado.equals("Seleccione un predio")) {
@@ -277,9 +252,6 @@ public class GestionCultivos extends JFrame {
         return -1;
     }
 
-    /**
-     * Establece la selección del ComboBox basado en el nombre del predio
-     */
     private void seleccionarPredioEnCombo(String nombrePredio) {
         for (int i = 0; i < comboPredios.getItemCount(); i++) {
             if (comboPredios.getItemAt(i).equals(nombrePredio)) {
@@ -287,44 +259,28 @@ public class GestionCultivos extends JFrame {
                 return;
             }
         }
-        comboPredios.setSelectedIndex(0); // Seleccionar "Seleccione un predio" si no se encuentra
+        comboPredios.setSelectedIndex(0);
     }
 
-    /**
-     * Método auxiliar para obtener el nombre del predio con manejo de errores
-     */
     private String obtenerNombrePredio(int idPredio) {
         try {
-            modelo.Predio predio = controller.obtenerPredio(idPredio);
+            Predio predio = controller.obtenerPredio(idPredio);
             return (predio != null) ? predio.getNombrePredio() : "Predio ID: " + idPredio;
         } catch (Exception e) {
             return "Error cargando predio";
         }
     }
 
-    // Método que carga todos los cultivos desde la base de datos al modelo de la tabla
     private void cargarDatos() {
-        try {
-            // Limpiar tabla
-            while (modeloTabla.getRowCount() > 0) {
-                modeloTabla.removeRow(0);
-            }
-
-            // Obtener datos
-            List<Cultivo> cultivos = controller.obtenerTodosCultivos();
-
-            // Llenar tabla
+        limpiarTabla();
+        List<Cultivo> cultivos = controller.obtenerTodosCultivos();
+        
+        if (cultivos.isEmpty()) {
+            mostrarMensajeInformacion("No hay cultivos registrados en la base de datos.");
+        } else {
             for (Cultivo cultivo : cultivos) {
-                String nombrePredio = "Predio no encontrado";
-                try {
-                    modelo.Predio predio = controller.obtenerPredio(cultivo.getIdPredio());
-                    if (predio != null) {
-                        nombrePredio = predio.getNombrePredio();
-                    }
-                } catch (Exception e) {
-                    // Si falla obtener el predio, continuamos con el nombre por defecto
-                }
-
+                String nombrePredio = obtenerNombrePredio(cultivo.getIdPredio());
+                
                 Object[] fila = {
                     cultivo.getNombreCultivo(),
                     cultivo.getTotalPlantas(), // ✅ NUEVO DATO EN TABLA
@@ -334,12 +290,7 @@ public class GestionCultivos extends JFrame {
                 };
                 modeloTabla.addRow(fila);
             }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Error al cargar los datos: " + e.getMessage(), 
-                "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            mostrarMensajeInformacion("Se cargaron " + cultivos.size() + " cultivo(s) desde la base de datos.");
         }
     }
 
@@ -357,93 +308,40 @@ public class GestionCultivos extends JFrame {
         tablaCultivos.clearSelection();
         txtNombreCultivo.requestFocus();
     }
-    
-    private void eliminarCultivo() {
-        int filaSeleccionada = tablaCultivos.getSelectedRow();
-        if (filaSeleccionada < 0) {
-            mostrarMensajeError("Seleccione un cultivo de la tabla para eliminar");
-            return;
-        }
-
-        // Obtener datos de la fila seleccionada
-        String nombreCultivo = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
-        String nombrePredio = modeloTabla.getValueAt(filaSeleccionada, 4).toString(); // ✅ AJUSTAR ÍNDICE
-
-        // Buscar el cultivo para obtener su ID
-        List<Cultivo> cultivos = controller.buscarCultivos(nombreCultivo);
-        Cultivo cultivoAEliminar = null;
-
-        for (Cultivo cultivo : cultivos) {
-            String nombrePredioActual = obtenerNombrePredio(cultivo.getIdPredio());
-            if (nombrePredioActual.equals(nombrePredio)) {
-                cultivoAEliminar = cultivo;
-                break;
-            }
-        }
-
-        if (cultivoAEliminar == null) {
-            mostrarMensajeError("No se pudo encontrar el cultivo para eliminar");
-            return;
-        }
-
-        int idCultivo = cultivoAEliminar.getIdCultivo();
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Está seguro que desea eliminar el cultivo?\n" +
-            "Nombre: " + nombreCultivo + "\n" +
-            "Predio: " + nombrePredio + "\n\n" +
-            "Esta acción no se puede deshacer.",
-            "Confirmar Eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                if (controller.eliminarCultivo(idCultivo)) {
-                    mostrarMensajeExito("Cultivo eliminado exitosamente");
-                    cargarDatos();
-                    limpiarFormulario();
-                } else {
-                    mostrarMensajeError("Error al eliminar el cultivo de la base de datos");
-                }
-            } catch (Exception ex) {
-                mostrarMensajeError("Error inesperado: " + ex.getMessage());
-            }
-        }
-    }
 
     private void seleccionarCultivoDeTabla() {
-        int fila = tablaCultivos.getSelectedRow();
-        if (fila >= 0) {
+        int filaSeleccionada = tablaCultivos.getSelectedRow();
+        if (filaSeleccionada >= 0) {
             try {
                 // Obtener datos visibles de la tabla
-                String nombreCultivo = modeloTabla.getValueAt(fila, 0).toString();
-                String totalPlantas = modeloTabla.getValueAt(fila, 1).toString(); // ✅ NUEVO DATO
-                String plantasAfectadas = modeloTabla.getValueAt(fila, 2).toString();
-                String estado = modeloTabla.getValueAt(fila, 3).toString();
-                String nombrePredio = modeloTabla.getValueAt(fila, 4).toString();
+                String nombreCultivo = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+                String totalPlantas = modeloTabla.getValueAt(filaSeleccionada, 1).toString(); // ✅ NUEVO DATO
+                String plantasAfectadas = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
+                String estado = modeloTabla.getValueAt(filaSeleccionada, 3).toString();
+                String nombrePredio = modeloTabla.getValueAt(filaSeleccionada, 4).toString();
 
-                // Buscar el ID del cultivo
+                // Buscar el cultivo para obtener el ID
                 List<Cultivo> cultivos = controller.buscarCultivos(nombreCultivo);
+                Cultivo cultivoSeleccionado = null;
+                
                 for (Cultivo cultivo : cultivos) {
                     String nombrePredioActual = obtenerNombrePredio(cultivo.getIdPredio());
                     if (nombrePredioActual.equals(nombrePredio)) {
-                        txtId.setText(String.valueOf(cultivo.getIdCultivo()));
+                        cultivoSeleccionado = cultivo;
                         break;
                     }
                 }
 
-                // Llenar formulario
-                txtNombreCultivo.setText(nombreCultivo);
-                txtTotalPlantas.setText(totalPlantas); // ✅ LLENAR NUEVO CAMPO
-                txtPlantasAfectadas.setText(plantasAfectadas);
-                txtEstadoPlanta.setText(estado);
-                seleccionarPredioEnCombo(nombrePredio);
-
+                if (cultivoSeleccionado != null) {
+                    txtId.setText(String.valueOf(cultivoSeleccionado.getIdCultivo()));
+                    txtNombreCultivo.setText(cultivoSeleccionado.getNombreCultivo());
+                    txtTotalPlantas.setText(String.valueOf(cultivoSeleccionado.getTotalPlantas())); // ✅ NUEVO CAMPO
+                    txtPlantasAfectadas.setText(String.valueOf(cultivoSeleccionado.getPlantasAfectadas()));
+                    txtEstadoPlanta.setText(cultivoSeleccionado.getEstadoPlanta());
+                    seleccionarPredioEnCombo(obtenerNombrePredio(cultivoSeleccionado.getIdPredio()));
+                }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error al cargar el cultivo seleccionado", 
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                mostrarMensajeError("Error al cargar el cultivo seleccionado: " + e.getMessage());
             }
         }
     }
@@ -454,9 +352,18 @@ public class GestionCultivos extends JFrame {
         }
 
         try {
+            String nombre = txtNombreCultivo.getText().trim();
+            int idPredio = obtenerIdPredioSeleccionado();
+
+            // Validar duplicados antes de insertar
+            if (controller.existeNombreCultivo(nombre, idPredio)) {
+                mostrarMensajeError("Ya existe un cultivo con el nombre '" + nombre + "' en el predio seleccionado");
+                txtNombreCultivo.requestFocus();
+                return;
+            }
+
             Cultivo nuevoCultivo = new Cultivo();
-            // NO establecer setIdCultivo - se generará automáticamente
-            nuevoCultivo.setNombreCultivo(txtNombreCultivo.getText().trim());
+            nuevoCultivo.setNombreCultivo(nombre);
             
             // ✅ VALIDAR Y ESTABLECER TOTAL_PLANTAS
             String totalPlantasText = txtTotalPlantas.getText().trim();
@@ -476,21 +383,7 @@ public class GestionCultivos extends JFrame {
             }
             
             nuevoCultivo.setEstadoPlanta(txtEstadoPlanta.getText().trim());
-            
-            // Obtener el ID del predio seleccionado
-            int idPredio = obtenerIdPredioSeleccionado();
-            if (idPredio == -1) {
-                mostrarMensajeError("Debe seleccionar un predio válido");
-                return;
-            }
             nuevoCultivo.setIdPredio(idPredio);
-
-            // Validar duplicados antes de insertar
-            if (controller.existeNombreCultivo(nuevoCultivo.getNombreCultivo(), idPredio)) {
-                mostrarMensajeError("Ya existe un cultivo con el nombre '" + nuevoCultivo.getNombreCultivo() + "' en el predio seleccionado");
-                txtNombreCultivo.requestFocus();
-                return;
-            }
 
             if (controller.agregarCultivo(nuevoCultivo)) {
                 mostrarMensajeExito("Cultivo agregado exitosamente");
@@ -501,6 +394,7 @@ public class GestionCultivos extends JFrame {
             }
         } catch (NumberFormatException ex) {
             mostrarMensajeError("Los campos numéricos deben contener valores válidos");
+            txtTotalPlantas.requestFocus();
         } catch (Exception ex) {
             mostrarMensajeError("Error inesperado: " + ex.getMessage());
         }
@@ -508,9 +402,7 @@ public class GestionCultivos extends JFrame {
 
     private void actualizarCultivo() {
         if (txtId.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Seleccione un cultivo de la tabla para actualizar", 
-                "Error", JOptionPane.ERROR_MESSAGE);
+            mostrarMensajeError("Seleccione un cultivo de la tabla para actualizar");
             return;
         }
 
@@ -519,11 +411,21 @@ public class GestionCultivos extends JFrame {
         }
 
         try {
-            // Crear objeto cultivo con los datos del formulario
-            Cultivo cultivo = new Cultivo();
-            cultivo.setIdCultivo(Integer.parseInt(txtId.getText()));
-            cultivo.setNombreCultivo(txtNombreCultivo.getText().trim());
+            int idCultivo = Integer.parseInt(txtId.getText());
+            String nombre = txtNombreCultivo.getText().trim();
+            int idPredio = obtenerIdPredioSeleccionado();
 
+            // Validar duplicados excluyendo el ID actual
+            if (controller.existeNombreCultivoExcluyendoId(nombre, idPredio, idCultivo)) {
+                mostrarMensajeError("Ya existe otro cultivo con el nombre '" + nombre + "' en el predio seleccionado");
+                txtNombreCultivo.requestFocus();
+                return;
+            }
+
+            Cultivo cultivo = new Cultivo();
+            cultivo.setIdCultivo(idCultivo);
+            cultivo.setNombreCultivo(nombre);
+            
             // ✅ VALIDAR Y ESTABLECER TOTAL_PLANTAS
             String totalPlantasText = txtTotalPlantas.getText().trim();
             if (totalPlantasText.isEmpty()) {
@@ -531,64 +433,37 @@ public class GestionCultivos extends JFrame {
                 txtTotalPlantas.requestFocus();
                 return;
             }
-            cultivo.setTotalPlantas(Integer.parseInt(totalPlantasText));
+            cultivo.setTotalPlantas(parseInt(totalPlantasText));
             
             // Manejar plantas afectadas (puede estar vacío)
             String plantasAfectadasText = txtPlantasAfectadas.getText().trim();
             if (plantasAfectadasText.isEmpty()) {
                 cultivo.setPlantasAfectadas(0);
             } else {
-                cultivo.setPlantasAfectadas(Integer.parseInt(plantasAfectadasText));
+                cultivo.setPlantasAfectadas(parseInt(plantasAfectadasText));
             }
-
-            cultivo.setEstadoPlanta(txtEstadoPlanta.getText().trim());
             
-            int idPredio = obtenerIdPredioSeleccionado();
-            if (idPredio == -1) {
-                JOptionPane.showMessageDialog(this, 
-                    "Debe seleccionar un predio válido", 
-                    "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            cultivo.setEstadoPlanta(txtEstadoPlanta.getText().trim());
             cultivo.setIdPredio(idPredio);
 
-            // Validar duplicados excluyendo el ID actual
-            if (controller.existeNombreCultivoExcluyendoId(cultivo.getNombreCultivo(), idPredio, cultivo.getIdCultivo())) {
-                mostrarMensajeError("Ya existe otro cultivo con el nombre '" + cultivo.getNombreCultivo() + "' en el predio seleccionado");
-                txtNombreCultivo.requestFocus();
-                return;
-            }
-
-            // Llamar al controlador para actualizar
-            boolean exito = controller.actualizarCultivo(cultivo);
-
-            if (exito) {
-                JOptionPane.showMessageDialog(this, 
-                    "Cultivo actualizado exitosamente", 
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            if (controller.actualizarCultivo(cultivo)) {
+                mostrarMensajeExito("Cultivo actualizado exitosamente");
+                cargarDatos();
                 limpiarFormulario();
-                cargarDatos(); // Recargar la tabla
             } else {
-                JOptionPane.showMessageDialog(this, 
-                    "No se pudo actualizar el cultivo", 
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                mostrarMensajeError("Error al actualizar el cultivo en la base de datos");
             }
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Los campos numéricos deben contener valores válidos", 
-                "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Error inesperado: " + e.getMessage(), 
-                "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        } catch (NumberFormatException ex) {
+            mostrarMensajeError("Los campos numéricos deben contener valores válidos");
+            txtTotalPlantas.requestFocus();
+        } catch (Exception ex) {
+            mostrarMensajeError("Error inesperado: " + ex.getMessage());
         }
     }
 
     private void buscarCultivos() {
         String criterio = JOptionPane.showInputDialog(this, 
-            "Ingrese el nombre o estado de planta a buscar:",
+            "Ingrese el nombre, estado de planta o predio a buscar:",
             "Buscar Cultivos",
             JOptionPane.QUESTION_MESSAGE);
 
@@ -658,7 +533,7 @@ public class GestionCultivos extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GestionCultivos().setVisible(true);
+            new GestionCultivosProductor().setVisible(true);
         });
     }
 }

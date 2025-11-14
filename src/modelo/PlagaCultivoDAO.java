@@ -1,6 +1,7 @@
 package modelo;
 
 import database.ConexionBD;
+import controlador.SesionUsuario;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,15 +16,35 @@ import java.util.List;
 public class PlagaCultivoDAO {
     
     /**
+     * Obtiene conexión según el usuario en sesión
+     */
+    private Connection getConexion() throws SQLException {
+        return ConexionBD.getConexionPorSesion();
+    }
+    
+    /**
+     * Verifica permisos antes de operaciones (opcional, para logging)
+     */
+    private void logOperacion(String operacion) {
+        try {
+            String tipoUsuario = SesionUsuario.getInstance().getTipoUsuario();
+            System.out.println("🔐 " + operacion + " - Usuario: " + tipoUsuario);
+        } catch (Exception e) {
+            System.out.println("⚠️ No se pudo obtener información de sesión");
+        }
+    }
+    
+    /**
      * Inserta una nueva relación plaga-cultivo en la base de datos.
      * 
      * @param pc Objeto PlagaCultivo que contiene los datos de la relación a insertar
      * @return true si la inserción fue exitosa, false en caso contrario
      */
     public boolean insertar(PlagaCultivo pc) {
+        logOperacion("INSERTAR RELACIÓN PLAGA-CULTIVO");
         String sql = "INSERT INTO Plaga_Cultivo (id_plaga, id_cultivo, nivel_afectacion, recomendaciones) VALUES (?, ?, ?, ?)";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, pc.getIdPlaga());
@@ -45,9 +66,10 @@ public class PlagaCultivoDAO {
      * @return true si la actualización fue exitosa, false en caso contrario
      */
     public boolean actualizar(PlagaCultivo pc) {
+        logOperacion("ACTUALIZAR RELACIÓN PLAGA-CULTIVO");
         String sql = "UPDATE Plaga_Cultivo SET nivel_afectacion = ?, recomendaciones = ? WHERE id_plaga = ? AND id_cultivo = ?";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, pc.getNivelAfectacion());
@@ -70,9 +92,10 @@ public class PlagaCultivoDAO {
      * @return true si la eliminación fue exitosa, false en caso contrario
      */
     public boolean eliminar(int idPlaga, int idCultivo) {
+        logOperacion("ELIMINAR RELACIÓN PLAGA-CULTIVO");
         String sql = "DELETE FROM Plaga_Cultivo WHERE id_plaga = ? AND id_cultivo = ?";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idPlaga);
@@ -92,10 +115,11 @@ public class PlagaCultivoDAO {
      * @return Objeto PlagaCultivo con los datos de la relación, o null si no se encuentra
      */
     public PlagaCultivo obtenerPorIds(int idPlaga, int idCultivo) {
+        logOperacion("CONSULTAR RELACIÓN PLAGA-CULTIVO POR IDS");
         String sql = "SELECT * FROM Plaga_Cultivo WHERE id_plaga = ? AND id_cultivo = ?";
         PlagaCultivo pc = null;
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idPlaga);
@@ -124,12 +148,13 @@ public class PlagaCultivoDAO {
      * @return Lista de objetos PlagaCultivo asociados a la plaga especificada
      */
     public List<PlagaCultivo> obtenerPorPlaga(int idPlaga) {
+        logOperacion("CONSULTAR RELACIONES POR PLAGA");
         List<PlagaCultivo> relaciones = new ArrayList<>();
         String sql = "SELECT pc.*, c.nombre as nombre_cultivo FROM Plaga_Cultivo pc " +
                     "JOIN Cultivo c ON pc.id_cultivo = c.id_cultivo " +
                     "WHERE pc.id_plaga = ?";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idPlaga);
@@ -158,12 +183,13 @@ public class PlagaCultivoDAO {
      * @return Lista de objetos PlagaCultivo asociados al cultivo especificado
      */
     public List<PlagaCultivo> obtenerPorCultivo(int idCultivo) {
+        logOperacion("CONSULTAR RELACIONES POR CULTIVO");
         List<PlagaCultivo> relaciones = new ArrayList<>();
         String sql = "SELECT pc.*, p.nombre_plaga FROM Plaga_Cultivo pc " +
                     "JOIN Plaga p ON pc.id_plaga = p.id_plaga " +
                     "WHERE pc.id_cultivo = ?";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idCultivo);

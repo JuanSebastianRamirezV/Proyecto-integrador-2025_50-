@@ -1,9 +1,4 @@
 
-/**
- * Clase que representa un predio o propiedad en el sistema.
- * Contiene información básica sobre la propiedad, su identificación y relación con municipios.
- 
- */
 package modelo;
 
 public class Predio {
@@ -27,6 +22,11 @@ public class Predio {
      */
     private int idMunicipio;
 
+    /**
+     * Nombre del municipio al que pertenece el predio
+     */
+    private String nombreMunicipio;
+
     // Constructores
     
     /**
@@ -47,6 +47,23 @@ public class Predio {
         this.nombrePredio = nombrePredio;
         this.nombrePropietario = nombrePropietario;
         this.idMunicipio = idMunicipio;
+    }
+
+    /**
+     * Constructor completo que incluye el nombre del municipio
+     * 
+     * @param idPredio Identificador único del predio
+     * @param nombrePredio Nombre descriptivo del predio
+     * @param nombrePropietario Nombre completo del propietario
+     * @param idMunicipio Identificador del municipio asociado
+     * @param nombreMunicipio Nombre del municipio asociado
+     */
+    public Predio(int idPredio, String nombrePredio, String nombrePropietario, int idMunicipio, String nombreMunicipio) {
+        this.idPredio = idPredio;
+        this.nombrePredio = nombrePredio;
+        this.nombrePropietario = nombrePropietario;
+        this.idMunicipio = idMunicipio;
+        this.nombreMunicipio = nombreMunicipio;
     }
 
     // Getters y Setters
@@ -108,6 +125,20 @@ public class Predio {
     public void setIdMunicipio(int idMunicipio) { this.idMunicipio = idMunicipio; }
 
     /**
+     * Obtiene el nombre del municipio asociado
+     * 
+     * @return El nombre del municipio como String
+     */
+    public String getNombreMunicipio() { return nombreMunicipio; }
+    
+    /**
+     * Establece el nombre del municipio asociado
+     * 
+     * @param nombreMunicipio El nuevo nombre del municipio
+     */
+    public void setNombreMunicipio(String nombreMunicipio) { this.nombreMunicipio = nombreMunicipio; }
+
+    /**
      * Representación en formato String de los atributos del predio
      * 
      * @return String con la información completa del predio en formato legible
@@ -119,6 +150,7 @@ public class Predio {
                 ", nombrePredio='" + nombrePredio + '\'' +
                 ", nombrePropietario='" + nombrePropietario + '\'' +
                 ", idMunicipio=" + idMunicipio +
+                ", nombreMunicipio='" + nombreMunicipio + '\'' +
                 '}';
     }
 }

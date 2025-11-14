@@ -10,8 +10,7 @@ public class Cultivo {
     private String nombreCultivo;
     private int plantasAfectadas;
     private String estadoPlanta;
-    private int totalPlantas;
-    private String nivelIncidencia;
+    private int totalPlantas; // ✅ NUEVO CAMPO
     private int idPredio;
 
     // Constructores
@@ -29,119 +28,37 @@ public class Cultivo {
      * @param nombreCultivo Nombre o tipo del cultivo
      * @param plantasAfectadas Número de plantas que presentan afectaciones
      * @param estadoPlanta Estado general de salud de las plantas
-     * @param totalPlantas Número total de plantas en el cultivo
-     * @param nivelIncidencia Nivel de incidencia de plagas o enfermedades
+     * @param totalPlantas Número total de plantas en el cultivo ✅ NUEVO PARÁMETRO
      * @param idPredio Identificador del predio al que pertenece el cultivo
      */
     public Cultivo(int idCultivo, String nombreCultivo, int plantasAfectadas, 
-                   String estadoPlanta, int totalPlantas, String nivelIncidencia, int idPredio) {
+                   String estadoPlanta, int totalPlantas, int idPredio) {
         this.idCultivo = idCultivo;
         this.nombreCultivo = nombreCultivo;
         this.plantasAfectadas = plantasAfectadas;
         this.estadoPlanta = estadoPlanta;
-        this.totalPlantas = totalPlantas;
-        this.nivelIncidencia = nivelIncidencia;
+        this.totalPlantas = totalPlantas; // ✅ INICIALIZAR NUEVO CAMPO
         this.idPredio = idPredio;
     }
 
     // Getters y Setters
 
-    /**
-     * Obtiene el identificador único del cultivo.
-     * 
-     * @return El ID del cultivo
-     */
     public int getIdCultivo() { return idCultivo; }
-    
-    /**
-     * Establece el identificador único del cultivo.
-     * 
-     * @param idCultivo El ID a asignar al cultivo
-     */
     public void setIdCultivo(int idCultivo) { this.idCultivo = idCultivo; }
 
-    /**
-     * Obtiene el nombre o tipo del cultivo.
-     * 
-     * @return El nombre del cultivo
-     */
     public String getNombreCultivo() { return nombreCultivo; }
-    
-    /**
-     * Establece el nombre o tipo del cultivo.
-     * 
-     * @param nombreCultivo El nombre a asignar al cultivo
-     */
     public void setNombreCultivo(String nombreCultivo) { this.nombreCultivo = nombreCultivo; }
 
-    /**
-     * Obtiene el número de plantas afectadas por plagas o enfermedades.
-     * 
-     * @return Número de plantas afectadas
-     */
     public int getPlantasAfectadas() { return plantasAfectadas; }
-    
-    /**
-     * Establece el número de plantas afectadas.
-     * 
-     * @param plantasAfectadas Número de plantas afectadas a registrar
-     */
     public void setPlantasAfectadas(int plantasAfectadas) { this.plantasAfectadas = plantasAfectadas; }
 
-    /**
-     * Obtiene el estado general de salud de las plantas.
-     * 
-     * @return Estado actual de las plantas
-     */
     public String getEstadoPlanta() { return estadoPlanta; }
-    
-    /**
-     * Establece el estado general de salud de las plantas.
-     * 
-     * @param estadoPlanta Estado a asignar a las plantas
-     */
     public void setEstadoPlanta(String estadoPlanta) { this.estadoPlanta = estadoPlanta; }
 
-    /**
-     * Obtiene el número total de plantas en el cultivo.
-     * 
-     * @return Total de plantas en el cultivo
-     */
-    public int getTotalPlantas() { return totalPlantas; }
-    
-    /**
-     * Establece el número total de plantas en el cultivo.
-     * 
-     * @param totalPlantas Total de plantas a registrar
-     */
-    public void setTotalPlantas(int totalPlantas) { this.totalPlantas = totalPlantas; }
+    public int getTotalPlantas() { return totalPlantas; } // ✅ NUEVO GETTER
+    public void setTotalPlantas(int totalPlantas) { this.totalPlantas = totalPlantas; } // ✅ NUEVO SETTER
 
-    /**
-     * Obtiene el nivel de incidencia de plagas o enfermedades.
-     * 
-     * @return Nivel de incidencia actual
-     */
-    public String getNivelIncidencia() { return nivelIncidencia; }
-    
-    /**
-     * Establece el nivel de incidencia de plagas o enfermedades.
-     * 
-     * @param nivelIncidencia Nivel de incidencia a registrar
-     */
-    public void setNivelIncidencia(String nivelIncidencia) { this.nivelIncidencia = nivelIncidencia; }
-
-    /**
-     * Obtiene el identificador del predio al que pertenece el cultivo.
-     * 
-     * @return ID del predio asociado
-     */
     public int getIdPredio() { return idPredio; }
-    
-    /**
-     * Establece el identificador del predio al que pertenece el cultivo.
-     * 
-     * @param idPredio ID del predio a asociar
-     */
     public void setIdPredio(int idPredio) { this.idPredio = idPredio; }
 
     /**
@@ -157,8 +74,7 @@ public class Cultivo {
                 ", nombreCultivo='" + nombreCultivo + '\'' +
                 ", plantasAfectadas=" + plantasAfectadas +
                 ", estadoPlanta='" + estadoPlanta + '\'' +
-                ", totalPlantas=" + totalPlantas +
-                ", nivelIncidencia='" + nivelIncidencia + '\'' +
+                ", totalPlantas=" + totalPlantas + // ✅ INCLUIR EN TOSTRING
                 ", idPredio=" + idPredio +
                 '}';
     }

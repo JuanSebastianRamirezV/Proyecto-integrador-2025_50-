@@ -27,11 +27,27 @@ public class PredioController {
         return predioDAO.obtenerPorId(idPredio);
     }
 
+    public Predio obtenerPredioPorNombre(String nombrePredio) {
+        return predioDAO.obtenerPorNombre(nombrePredio);
+    }
+
     public List<Predio> obtenerTodosPredios() {
         return predioDAO.obtenerTodos();
     }
 
     public List<Predio> buscarPredios(String criterio) {
         return predioDAO.buscar(criterio);
+    }
+
+    public List<Predio> obtenerPrediosPorMunicipio(int idMunicipio) {
+        return predioDAO.obtenerPorMunicipio(idMunicipio);
+    }
+
+    public boolean existeNombrePredio(String nombrePredio) {
+        return predioDAO.existeNombrePredio(nombrePredio);
+    }
+
+    public int contarPrediosPorMunicipio(int idMunicipio) {
+        return predioDAO.contarPrediosPorMunicipio(idMunicipio);
     }
 }

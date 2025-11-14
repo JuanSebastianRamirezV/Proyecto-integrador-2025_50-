@@ -72,4 +72,7 @@ public class InspectorController {
     public List<Inspector> buscarInspectores(String criterio) {
         return inspectorDAO.buscar(criterio);
     }
+    public boolean existeInspector(String numeroDocumento) {
+        return inspectorDAO.existeNumeroDocumento(numeroDocumento);
+    }
 }

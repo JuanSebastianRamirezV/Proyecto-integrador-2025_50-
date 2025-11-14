@@ -13,7 +13,7 @@ public class GestionSedesICA extends JFrame {
     // Componentes de la interfaz gráfica
     private JTable tablaSedes;                    // Tabla para mostrar la lista de sedes ICA
     private DefaultTableModel modeloTabla;        // Modelo de datos para la tabla
-    private JTextField txtId;                     // Campo para ID de la sede (no editable)
+    private JTextField txtId;                     // Campo para ID de la sede (oculto)
     private JTextField txtCorreo;                 // Campo para correo electrónico de la sede
     private JTextField txtTelefono;               // Campo para teléfono de la sede
     
@@ -89,7 +89,7 @@ public class GestionSedesICA extends JFrame {
      * @return JPanel configurado con GridBagLayout conteniendo todos los campos del formulario
      * 
      * Campos incluidos:
-     * - ID Sede (campo no editable, auto-generado)
+     * - ID Sede (campo oculto, auto-generado)
      * - Correo Electrónico (campo obligatorio)
      * - Teléfono (campo obligatorio)
      * - Botones de Limpiar y Buscar
@@ -111,31 +111,26 @@ public class GestionSedesICA extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL; // Los componentes se expanden horizontalmente
         gbc.weightx = 1.0;                      // Distribución equitativa del espacio
 
-        // Campo ID Sede (no editable)
-        gbc.gridx = 0; gbc.gridy = 0;
-        panelFormulario.add(new JLabel("ID Sede:"), gbc);
-        gbc.gridx = 1;
+        // CAMBIO: Campo ID Sede OCULTO
         txtId = new JTextField();
-        txtId.setEditable(false);  // Campo de solo lectura
-        txtId.setBackground(new Color(240, 240, 240));  // Fondo gris para indicar no editable
-        panelFormulario.add(txtId, gbc);
+        txtId.setVisible(false);  // Campo oculto para uso interno
 
         // Campo Correo Electrónico (obligatorio)
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 0;
         panelFormulario.add(new JLabel("Correo Electrónico:*"), gbc);
         gbc.gridx = 1;
         txtCorreo = new JTextField();
         panelFormulario.add(txtCorreo, gbc);
 
         // Campo Teléfono (obligatorio)
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Teléfono:*"), gbc);
         gbc.gridx = 1;
         txtTelefono = new JTextField();
         panelFormulario.add(txtTelefono, gbc);
 
         // Panel de botones del formulario (Limpiar y Buscar)
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 2;
         gbc.gridwidth = 2;        // Ocupa dos columnas
         gbc.insets = new Insets(15, 5, 5, 5);  // Mayor margen superior
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -173,8 +168,7 @@ public class GestionSedesICA extends JFrame {
             }
         };
         
-        // Definición de columnas del modelo de datos
-        modeloTabla.addColumn("ID");
+        // CAMBIO: Definición de columnas sin ID
         modeloTabla.addColumn("Correo Electrónico");
         modeloTabla.addColumn("Teléfono");
 
@@ -188,7 +182,7 @@ public class GestionSedesICA extends JFrame {
         tablaSedes.getTableHeader().setForeground(Color.WHITE);
         tablaSedes.setRowHeight(25);  // Altura fija de filas para mejor legibilidad
         
-        // Renderer personalizado para mejorar la experiencia visual - CORREGIDO
+        // Renderer personalizado para mejorar la experiencia visual
         tablaSedes.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -332,7 +326,7 @@ public class GestionSedesICA extends JFrame {
         } else {
             for (SedeICA sede : sedes) {
                 Object[] fila = {
-                    sede.getIdSede(),
+                    // CAMBIO: No mostrar ID en la tabla
                     sede.getCorreoElectronico(),
                     sede.getTelefono()
                 };
@@ -361,9 +355,21 @@ public class GestionSedesICA extends JFrame {
     private void seleccionarSedeDeTabla() {
         int filaSeleccionada = tablaSedes.getSelectedRow();
         if (filaSeleccionada >= 0) {
-            txtId.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-            txtCorreo.setText(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
-            txtTelefono.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
+            // CAMBIO: Obtener el ID usando los datos visibles
+            String correo = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+            String telefono = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            
+            // Buscar la sede por correo y teléfono
+            List<SedeICA> sedes = controller.buscarSedesICA(correo);
+            for (SedeICA sede : sedes) {
+                if (sede.getTelefono().equals(telefono)) {
+                    txtId.setText(String.valueOf(sede.getIdSede()));
+                    break;
+                }
+            }
+            
+            txtCorreo.setText(correo);
+            txtTelefono.setText(telefono);
         }
     }
 
@@ -425,13 +431,28 @@ public class GestionSedesICA extends JFrame {
             return;
         }
 
-        int idSede = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String correoSede = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        // CAMBIO: Obtener el ID usando los datos visibles
+        String correo = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+        String telefono = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        
+        List<SedeICA> sedes = controller.buscarSedesICA(correo);
+        int idSede = 0;
+        for (SedeICA sede : sedes) {
+            if (sede.getTelefono().equals(telefono)) {
+                idSede = sede.getIdSede();
+                break;
+            }
+        }
+
+        if (idSede == 0) {
+            mostrarMensajeError("No se pudo encontrar la sede seleccionada");
+            return;
+        }
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea eliminar la sede ICA?\n" +
-            "Correo: " + correoSede + "\n" +
-            "ID: " + idSede + "\n\n" +
+            "Correo: " + correo + "\n" +
+            "Teléfono: " + telefono + "\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar Eliminación",
             JOptionPane.YES_NO_OPTION,
@@ -468,7 +489,6 @@ public class GestionSedesICA extends JFrame {
                 } else {
                     for (SedeICA sede : resultados) {
                         Object[] fila = {
-                            sede.getIdSede(),
                             sede.getCorreoElectronico(),
                             sede.getTelefono()
                         };

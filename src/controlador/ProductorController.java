@@ -78,4 +78,12 @@ public class ProductorController {
     public List<Productor> buscarProductores(String criterio) {
         return productorDAO.buscar(criterio);
     }
+     /**
+ * Verifica si ya existe un productor con el nombre especificado
+ * @param nombreCompleto Nombre del productor a verificar
+ * @return true si ya existe, false si no existe
+ */
+    public boolean existeProductor(String nombreCompleto) {
+        return productorDAO.existeNombreProductor(nombreCompleto);
+    }
 }

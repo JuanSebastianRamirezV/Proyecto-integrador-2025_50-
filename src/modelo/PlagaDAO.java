@@ -1,35 +1,64 @@
 package modelo;
 
 import database.ConexionBD;
+import controlador.SesionUsuario;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlagaDAO {
     
+    /**
+     * Obtiene conexión según el usuario en sesión
+     */
+    private Connection getConexion() throws SQLException {
+        return ConexionBD.getConexionPorSesion();
+    }
+    
+    /**
+     * Verifica permisos antes de operaciones (opcional, para logging)
+     */
+    private void logOperacion(String operacion) {
+        try {
+            String tipoUsuario = SesionUsuario.getInstance().getTipoUsuario();
+            System.out.println("🔐 " + operacion + " - Usuario: " + tipoUsuario);
+        } catch (Exception e) {
+            System.out.println("⚠️ No se pudo obtener información de sesión");
+        }
+    }
+    
     public boolean insertar(Plaga plaga) {
-        String sql = "INSERT INTO PLAGA (NOMBRE_PLAGA, TIPO_PLAGA, CULTIVOS_ASOCIADOS) VALUES (?, ?, ?)";
+        logOperacion("INSERTAR PLAGA");
+        // ✅ PRIMERO validar si ya existe
+        if (existeNombrePlaga(plaga.getNombrePlaga())) {
+            System.out.println("Error: Ya existe una plaga con el nombre: " + plaga.getNombrePlaga());
+            return false;
+        }
 
-        try (Connection conn = ConexionBD.getConexion();
+        String sql = "INSERT INTO PLAGA (ID_PLAGA, NOMBRE_PLAGA, TIPO_PLAGA, CULTIVOS_ASOCIADOS) VALUES (SEQ_PLAGA.NEXTVAL, ?, ?, ?)";
+
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // NO establecer ID_PLAGA - se generará automáticamente
             stmt.setString(1, plaga.getNombrePlaga());
             stmt.setString(2, plaga.getTipoPlaga());
             stmt.setString(3, plaga.getCultivosAsociados());
 
-            return stmt.executeUpdate() > 0;
+            int result = stmt.executeUpdate();
+            return result > 0;
 
         } catch (SQLException e) {
             System.out.println("Error al insertar plaga: " + e.getMessage());
+            System.out.println("SQL: " + sql);
             return false;
         }
     }
 
     public boolean actualizar(Plaga plaga) {
+        logOperacion("ACTUALIZAR PLAGA");
         String sql = "UPDATE PLAGA SET NOMBRE_PLAGA = ?, TIPO_PLAGA = ?, CULTIVOS_ASOCIADOS = ? WHERE ID_PLAGA = ?";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, plaga.getNombrePlaga());
@@ -45,26 +74,60 @@ public class PlagaDAO {
     }
 
     public boolean eliminar(int idPlaga) {
-        String sql = "{call eliminar_plaga_cascada(?)}";
+        // Primero verificar si hay registros relacionados en RELACION_ASOCIADOS
+        if (tieneRegistrosRelacionadosPlaga(idPlaga)) {
+            System.out.println("No se puede eliminar la plaga porque tiene registros relacionados");
+            return false;
+        }
+
+        // Si no hay registros relacionados, proceder con la eliminación
+        String sql = "DELETE FROM plaga WHERE id_plaga = ?";
 
         try (Connection conn = ConexionBD.getConexion();
-             CallableStatement stmt = conn.prepareCall(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idPlaga);
-            stmt.execute();
-            return true;
+            int filasAfectadas = stmt.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Plaga eliminada correctamente");
+                return true;
+            } else {
+                System.out.println("No se encontró la plaga con ID: " + idPlaga);
+                return false;
+            }
 
         } catch (SQLException e) {
-            System.out.println("Error al eliminar plaga en cascada: " + e.getMessage());
+            System.out.println("Error al eliminar plaga: " + e.getMessage());
             return false;
         }
     }
 
+    private boolean tieneRegistrosRelacionadosPlaga(int idPlaga) {
+        String sql = "SELECT COUNT(*) FROM relacion_asociados WHERE id_plaga = ?";
+
+        try (Connection conn = ConexionBD.getConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idPlaga);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Existen " + rs.getInt(1) + " registro(s) relacionados en RELACION_ASOCIADOS");
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al verificar registros relacionados: " + e.getMessage());
+            return true; // Por seguridad, asumimos que hay relaciones si hay error
+        }
+        return false;
+    }
+
     public Plaga obtenerPorId(int idPlaga) {
+        logOperacion("CONSULTAR PLAGA POR ID");
         String sql = "SELECT * FROM PLAGA WHERE ID_PLAGA = ?";
         Plaga plaga = null;
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idPlaga);
@@ -81,10 +144,11 @@ public class PlagaDAO {
     }
 
     public List<Plaga> obtenerTodos() {
+        logOperacion("CONSULTAR TODAS LAS PLAGAS");
         List<Plaga> plagas = new ArrayList<>();
         String sql = "SELECT * FROM PLAGA ORDER BY ID_PLAGA asc";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -100,10 +164,11 @@ public class PlagaDAO {
     }
 
     public List<Plaga> buscar(String criterio) {
+        logOperacion("BUSCAR PLAGAS");
         List<Plaga> plagas = new ArrayList<>();
         String sql = "SELECT * FROM PLAGA WHERE UPPER(NOMBRE_PLAGA) LIKE UPPER(?) OR UPPER(TIPO_PLAGA) LIKE UPPER(?) OR UPPER(CULTIVOS_ASOCIADOS) LIKE UPPER(?) ORDER BY NOMBRE_PLAGA";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             String likeCriterio = "%" + criterio + "%";
@@ -125,10 +190,11 @@ public class PlagaDAO {
     }
 
     public List<Plaga> obtenerPorTipo(String tipoPlaga) {
+        logOperacion("CONSULTAR PLAGAS POR TIPO");
         List<Plaga> plagas = new ArrayList<>();
         String sql = "SELECT * FROM PLAGA WHERE UPPER(TIPO_PLAGA) = UPPER(?) ORDER BY NOMBRE_PLAGA";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, tipoPlaga);
@@ -146,10 +212,11 @@ public class PlagaDAO {
     }
 
     public List<Plaga> obtenerPorCultivo(String cultivo) {
+        logOperacion("CONSULTAR PLAGAS POR CULTIVO");
         List<Plaga> plagas = new ArrayList<>();
         String sql = "SELECT * FROM PLAGA WHERE UPPER(CULTIVOS_ASOCIADOS) LIKE UPPER(?) ORDER BY NOMBRE_PLAGA";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, "%" + cultivo + "%");
@@ -169,7 +236,7 @@ public class PlagaDAO {
     public boolean existeNombrePlaga(String nombrePlaga) {
         String sql = "SELECT COUNT(*) FROM PLAGA WHERE UPPER(NOMBRE_PLAGA) = UPPER(?)";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, nombrePlaga);
@@ -186,10 +253,11 @@ public class PlagaDAO {
     }
 
     public List<String> obtenerTiposPlaga() {
+        logOperacion("CONSULTAR TIPOS DE PLAGA");
         List<String> tipos = new ArrayList<>();
         String sql = "SELECT DISTINCT TIPO_PLAGA FROM PLAGA WHERE TIPO_PLAGA IS NOT NULL ORDER BY TIPO_PLAGA";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -204,9 +272,10 @@ public class PlagaDAO {
     }
 
     public int contarPlagas() {
+        logOperacion("CONTAR PLAGAS");
         String sql = "SELECT COUNT(*) FROM PLAGA";
         
-        try (Connection conn = ConexionBD.getConexion();
+        try (Connection conn = getConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             

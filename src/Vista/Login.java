@@ -1,332 +1,405 @@
 package vista;
 
+import controlador.SesionUsuario;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.util.TimerTask;
+import java.util.Timer;
 
+/**
+ * Login — Interfaz de login avanzada y profesional (Swing)
+ * Conserva el nombre original de la clase.
+ */
 public class Login extends JFrame {
-    private JTextField usuarioField;
-    private JPasswordField passwordField;
-    private JButton ingresarBtn;
-    private JButton salirBtn;
+    private static final Color PRIMARY = new Color(10, 132, 255);
+    private static final Color PRIMARY_DARK = new Color(0, 102, 204);
+    private static final Color CARD_BG = new Color(255, 255, 255, 230);
+    private static final int WIDTH = 900;
+    private static final int HEIGHT = 520;
+
+    private Icon iconUser;
+    private Icon iconPass;
+
+    private IconLoader iconLoader = new IconLoader();
+
+    private MaterialField tfUser;
+    private MaterialPasswordField pfPass;
+    private JButton btnLogin;
+    private JButton btnCancel;
+    private JLabel lblMessage;
+    private LoadingSpinner spinner;
 
     public Login() {
-        setTitle("Software de Gestión - Login");
+        setTitle("Iniciar sesión - Software de Gestión ICA");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(450, 580); // Aumenté la altura para que no corte el mensaje
+        setSize(WIDTH, HEIGHT);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
-        
-        // Panel principal con fondo azul similar al sistema
-        JPanel mainPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                
-                // Gradiente azul similar al del sistema
-                Color color1 = new Color(0, 78, 152);  // Azul oscuro
-                Color color2 = new Color(0, 112, 192); // Azul medio
-                GradientPaint gp = new GradientPaint(0, 0, color1, getWidth(), getHeight(), color2);
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        mainPanel.setLayout(new BorderLayout());
+        setUndecorated(true);
+        setShape(new RoundRectangle2D.Double(0,0,WIDTH,HEIGHT,18,18));
 
-        // Panel de contenido (tarjeta blanca) - Más padding inferior
-        JPanel contentPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
-                g2.dispose();
-            }
-        };
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 60, 40)); // Más padding abajo
-        contentPanel.setOpaque(false);
-        contentPanel.setPreferredSize(new Dimension(400, 500));
+        iconUser = iconLoader.load("/user.png");
+        iconPass = iconLoader.load("/lock.png");
 
-        // Título del sistema - SOLO "SOFTWARE DE GESTIÓN"
-        JLabel tituloSistema = new JLabel("SOFTWARE DE GESTIÓN");
-        tituloSistema.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        tituloSistema.setForeground(new Color(0, 78, 152));
-        tituloSistema.setAlignmentX(Component.CENTER_ALIGNMENT);
-        tituloSistema.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(new ShadowPanel(), BorderLayout.CENTER);
 
-        // Icono o logo
-        JLabel iconoLabel = new JLabel();
-        iconoLabel.setIcon(crearIconoSistema());
-        iconoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        iconoLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 25, 0));
-
-        // Título del login
-        JLabel loginTitle = new JLabel("INICIAR SESIÓN");
-        loginTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        loginTitle.setForeground(new Color(60, 60, 60));
-        loginTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loginTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
-
-        // Panel de formulario
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setOpaque(false);
-        formPanel.setMaximumSize(new Dimension(300, 200));
-
-        // Campo usuario
-        JPanel usuarioPanel = new JPanel(new BorderLayout());
-        usuarioPanel.setOpaque(false);
-        usuarioPanel.setMaximumSize(new Dimension(300, 60));
-        
-        JLabel usuarioLabel = new JLabel("Usuario:");
-        usuarioLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        usuarioLabel.setForeground(new Color(80, 80, 80));
-        usuarioLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 0));
-        
-        usuarioField = new JTextField();
-        usuarioField.setMaximumSize(new Dimension(300, 40));
-        usuarioField.setPreferredSize(new Dimension(300, 40));
-        usuarioField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        usuarioField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        
-        usuarioPanel.add(usuarioLabel, BorderLayout.NORTH);
-        usuarioPanel.add(usuarioField, BorderLayout.CENTER);
-
-        // Espacio entre campos
-        formPanel.add(usuarioPanel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        // Campo contraseña
-        JPanel passwordPanel = new JPanel(new BorderLayout());
-        passwordPanel.setOpaque(false);
-        passwordPanel.setMaximumSize(new Dimension(300, 60));
-        
-        JLabel passwordLabel = new JLabel("Contraseña:");
-        passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        passwordLabel.setForeground(new Color(80, 80, 80));
-        passwordLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 0));
-        
-        passwordField = new JPasswordField();
-        passwordField.setMaximumSize(new Dimension(300, 40));
-        passwordField.setPreferredSize(new Dimension(300, 40));
-        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(10, 12, 10, 12)
-        ));
-        
-        passwordPanel.add(passwordLabel, BorderLayout.NORTH);
-        passwordPanel.add(passwordField, BorderLayout.CENTER);
-
-        formPanel.add(passwordPanel);
-        formPanel.add(Box.createRigidArea(new Dimension(0, 35)));
-
-        // Panel de botones
-        JPanel botonesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
-        botonesPanel.setOpaque(false);
-        botonesPanel.setMaximumSize(new Dimension(300, 50));
-
-        ingresarBtn = crearBotonEstiloSistema("Ingresar", new Color(0, 112, 192));
-        salirBtn = crearBotonEstiloSistema("Salir", new Color(120, 120, 120));
-
-        // Atajos de teclado
-        ingresarBtn.setMnemonic(KeyEvent.VK_I);
-        salirBtn.setMnemonic(KeyEvent.VK_S);
-        passwordField.addActionListener(e -> ingresarBtn.doClick());
-
-        botonesPanel.add(ingresarBtn);
-        botonesPanel.add(salirBtn);
-
-        // Más espacio antes del mensaje de ayuda
-        formPanel.add(Box.createRigidArea(new Dimension(0, 30)));
-
-        // Mensaje de ayuda - con suficiente espacio
-        JPanel ayudaPanel = new JPanel();
-        ayudaPanel.setLayout(new BoxLayout(ayudaPanel, BoxLayout.Y_AXIS));
-        ayudaPanel.setOpaque(false);
-        ayudaPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel ayudaLabel = new JLabel("Contacte al administrador si tiene problemas de acceso");
-        ayudaLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        ayudaLabel.setForeground(new Color(120, 120, 120));
-        ayudaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        ayudaPanel.add(ayudaLabel);
-        ayudaPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
-
-        // Ensamblar componentes
-        contentPanel.add(tituloSistema);
-        contentPanel.add(iconoLabel);
-        contentPanel.add(loginTitle);
-        contentPanel.add(formPanel);
-        contentPanel.add(botonesPanel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        contentPanel.add(ayudaPanel);
-
-        // Centrar el contenido con más margen inferior
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setOpaque(false);
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(20, 0, 30, 0); // Más margen inferior
-        centerPanel.add(contentPanel, gbc);
-
-        mainPanel.add(centerPanel, BorderLayout.CENTER);
-
-        add(mainPanel);
-
-        // Configurar ESC para salir
-        getRootPane().registerKeyboardAction(
-            e -> salirBtn.doClick(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-            JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
-
-        // Inicializar
-        limpiarCampos();
-    }
-
-    private Icon crearIconoSistema() {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Círculo exterior azul
-                g2d.setColor(new Color(0, 112, 192));
-                g2d.fillOval(x, y, 80, 80);
-                
-                // Icono de usuario/sistema
-                g2d.setColor(Color.WHITE);
-                g2d.fillOval(x + 15, y + 15, 50, 50);
-                
-                // Símbolo de usuario
-                g2d.setColor(new Color(0, 112, 192));
-                g2d.fillOval(x + 30, y + 30, 20, 20);
-                
-                g2d.dispose();
-            }
-
-            @Override
-            public int getIconWidth() {
-                return 80;
-            }
-
-            @Override
-            public int getIconHeight() {
-                return 80;
-            }
-        };
-    }
-
-    private JButton crearBotonEstiloSistema(String texto, Color color) {
-        JButton boton = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Fondo del botón
-                g2.setColor(color);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                
-                g2.dispose();
-                
-                super.paintComponent(g);
-            }
-        };
-        
-        boton.setForeground(Color.WHITE);
-        boton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        boton.setFocusPainted(false);
-        boton.setBorderPainted(false);
-        boton.setContentAreaFilled(false);
-        boton.setOpaque(false);
-        boton.setPreferredSize(new Dimension(120, 40));
-        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        // Efecto hover
-        boton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                boton.setBackground(color.brighter());
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                boton.setBackground(color);
+        // Hacer la ventana draggable (sin dependencia de utilidades externas)
+        final Point[] mouseDownCompCoords = new Point[1];
+        addMouseListener(new MouseAdapter(){
+            @Override public void mousePressed(MouseEvent e){ mouseDownCompCoords[0] = e.getPoint(); }
+        });
+        addMouseMotionListener(new MouseMotionAdapter(){
+            @Override public void mouseDragged(MouseEvent e){
+                Point currCoords = e.getLocationOnScreen();
+                if (mouseDownCompCoords[0] != null) {
+                    setLocation(currCoords.x - mouseDownCompCoords[0].x, currCoords.y - mouseDownCompCoords[0].y);
+                }
             }
         });
+        addWindowControls();
+    }
+
+    private void addWindowControls() {
+        JPanel root = new JPanel(new BorderLayout());
+        root.setOpaque(false);
+
+        JPanel left = new JPanel(new BorderLayout());
+        left.setPreferredSize(new Dimension(420, HEIGHT));
+        left.setOpaque(false);
+        left.setBorder(new EmptyBorder(30,30,30,30));
+
+        JPanel ill = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0,0,PRIMARY, getWidth(), getHeight(), new Color(170,200,255));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0,0,getWidth(),getHeight(),16,16);
+            }
+        };
+        ill.setOpaque(false);
+        ill.setLayout(new BorderLayout());
         
-        return boton;
+        // Título más corto y centrado
+        JLabel title = new JLabel("Bienvenidos al Software");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setForeground(Color.WHITE);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setBorder(new EmptyBorder(40,18,20,18));
+        ill.add(title, BorderLayout.NORTH);
+
+        // Texto mejor centrado y con márgenes adecuados
+        JTextArea txt = new JTextArea("Accede con tu cuenta para continuar y gestionar tus operaciones.\n\nSi aún no tienes cuenta, ponte en contacto con el administrador.");
+        txt.setEditable(false);
+        txt.setOpaque(false);
+        txt.setForeground(new Color(240,240,255));
+        txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txt.setBorder(new EmptyBorder(20,25,20,25));
+        txt.setLineWrap(true);
+        txt.setWrapStyleWord(true);
+        txt.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ill.add(txt, BorderLayout.CENTER);
+
+        left.add(ill, BorderLayout.CENTER);
+
+        JPanel right = new JPanel();
+        right.setOpaque(false);
+        right.setLayout(new GridBagLayout());
+
+        JPanel card = new RoundedPanel(14, CARD_BG);
+        card.setPreferredSize(new Dimension(380, 400));
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(new EmptyBorder(18,18,18,18));
+
+        JLabel logo = new JLabel("Gestión ICA");
+        logo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        logo.setForeground(new Color(34,34,34));
+        logo.setBorder(new EmptyBorder(6,0,10,0));
+
+        lblMessage = new JLabel(" ");
+        lblMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblMessage.setForeground(new Color(180,30,30));
+        lblMessage.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblMessage.setBorder(new EmptyBorder(4,0,8,0));
+
+        tfUser = new MaterialField(iconUser, "Correo o usuario");
+        pfPass = new MaterialPasswordField(iconPass, "Contraseña");
+
+        spinner = new LoadingSpinner(20);
+        spinner.setAlignmentX(Component.CENTER_ALIGNMENT);
+        spinner.setVisible(false);
+
+        btnLogin = new RoundedButton("Ingresar");
+        btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnLogin.addActionListener(e -> attemptLogin());
+
+        btnCancel = new JButton("Salir");
+        btnCancel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnCancel.setBorderPainted(false);
+        btnCancel.setContentAreaFilled(false);
+        btnCancel.addActionListener(e -> System.exit(0));
+
+        card.add(logo);
+        card.add(lblMessage);
+        card.add(tfUser);
+        card.add(Box.createRigidArea(new Dimension(0,10)));
+        card.add(pfPass);
+        card.add(Box.createRigidArea(new Dimension(0,12)));
+        card.add(btnLogin);
+        card.add(Box.createRigidArea(new Dimension(0,8)));
+        card.add(spinner);
+        card.add(Box.createRigidArea(new Dimension(0,6)));
+        card.add(btnCancel);
+
+        right.add(card);
+
+        root.add(left, BorderLayout.WEST);
+        root.add(right, BorderLayout.CENTER);
+
+        getContentPane().add(root, BorderLayout.CENTER);
+
+        getRootPane().setDefaultButton(btnLogin);
     }
 
-    // Métodos existentes (se mantienen igual para no romper funcionalidad)
-    public void addIngresarListener(ActionListener listener) {
-        ingresarBtn.addActionListener(listener);
+    private void attemptLogin() {
+        lblMessage.setText(" ");
+        String user = tfUser.getText().trim();
+        String pass = new String(pfPass.getPassword());
+
+        if (user.isEmpty()) { lblMessage.setText("Ingresa tu usuario o correo."); tfUser.requestFocus(); return; }
+        if (pass.isEmpty()) { lblMessage.setText("Ingresa tu contraseña."); pfPass.requestFocus(); return; }
+
+        spinner.setVisible(true);
+        btnLogin.setEnabled(false);
+
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                SwingUtilities.invokeLater(() -> {
+                    spinner.setVisible(false);
+                    btnLogin.setEnabled(true);
+
+                    if (authenticate(user, pass)) {
+                        openMenuPrincipalSafely(user);
+                        dispose();
+                    } else {
+                        lblMessage.setText("Usuario o contraseña incorrectos.");
+                        Animations.shakeWindow(Login.this);
+                    }
+                });
+            }
+        }, 1200);
     }
 
-    public void addSalirListener(ActionListener listener) {
-        salirBtn.addActionListener(listener);
+    private boolean authenticate(String user, String pass) {
+        // Credenciales para administrador
+        if ("admin".equals(user) && "1234".equals(pass)) {
+            SesionUsuario.getInstance().iniciarSesion(user, "ADMIN");
+            return true;
+        }
+        // Credenciales para productor
+        if ("productor".equals(user) && "1234".equals(pass)) {
+            SesionUsuario.getInstance().iniciarSesion(user, "PRODUCTOR");
+            return true;
+        }
+        // Credenciales para inspector
+        if ("inspector".equals(user) && "inspector123".equals(pass)) {
+            SesionUsuario.getInstance().iniciarSesion(user, "INSPECTOR");
+            return true;
+        }
+        return false;
     }
 
-    public String getUsuario() {
-        return usuarioField.getText();
-    }
-
-    public String getPassword() {
-        return new String(passwordField.getPassword());
-    }
-
-    public void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error de Acceso", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void limpiarCampos() {
-        usuarioField.setText("");
-        passwordField.setText("");
-        usuarioField.requestFocusInWindow();
-    }
-
-    // Para compatibilidad con el código existente
-    public void setLoginListener(ActionListener listener) {
-        addIngresarListener(listener);
-    }
-
-    public void setSalirListener(ActionListener listener) {
-        addSalirListener(listener);
-    }
-
-    // Método main para pruebas
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
-                e.printStackTrace();
+    private void openMenuPrincipalSafely(String usuario) {
+        try {
+            JFrame menuFrame;
+            
+            // Obtener el tipo de usuario de la sesión
+            String tipoUsuario = SesionUsuario.getInstance().getTipoUsuario();
+            
+            if ("ADMIN".equals(tipoUsuario)) {
+                menuFrame = (JFrame) Class.forName("vista.MenuPrincipal").getDeclaredConstructor().newInstance();
+                vista.MenuPrincipal menuPrincipal = (vista.MenuPrincipal) menuFrame;
+                menuPrincipal.setUsuarioActual(usuario);
+            } else if ("PRODUCTOR".equals(tipoUsuario)) {
+                menuFrame = (JFrame) Class.forName("vista.MenuPrincipalProductor").getDeclaredConstructor().newInstance();
+                vista.MenuPrincipalProductor menuProductor = (vista.MenuPrincipalProductor) menuFrame;
+                menuProductor.setUsuarioActual(usuario);
+            } else if ("INSPECTOR".equals(tipoUsuario)) {
+                // Redirigir al menú principal del inspector
+                menuFrame = (JFrame) Class.forName("vista.MenuPrincipalInspector").getDeclaredConstructor().newInstance();
+                vista.MenuPrincipalInspector menuInspector = (vista.MenuPrincipalInspector) menuFrame;
+                menuInspector.setUsuarioActual(usuario);
+            } else {
+                // Por defecto, menú principal
+                menuFrame = (JFrame) Class.forName("vista.MenuPrincipal").getDeclaredConstructor().newInstance();
+                vista.MenuPrincipal menuPrincipal = (vista.MenuPrincipal) menuFrame;
+                menuPrincipal.setUsuarioActual(usuario);
             }
             
-            Login login = new Login();
-            login.setVisible(true);
-            
-            // Ejemplo de listeners
-            login.addIngresarListener(e -> {
-                System.out.println("Usuario: " + login.getUsuario());
-                System.out.println("Password: " + login.getPassword());
+            menuFrame.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Inicio correcto, pero no se pudo abrir el menú: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    private static class RoundedPanel extends JPanel {
+        private int radius; private Color bg;
+        public RoundedPanel(int r, Color bg) { this.radius = r; this.bg = bg; setOpaque(false); }
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(bg);
+            g2.fillRoundRect(0,0,getWidth(),getHeight(),radius,radius);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    private static class ShadowPanel extends JPanel {
+        public ShadowPanel() { setOpaque(false); setLayout(new BorderLayout()); }
+        @Override protected void paintComponent(Graphics g) {
+            int w = getWidth(), h = getHeight();
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(0,0,0,30));
+            g2.fillRoundRect(10,10,w-20,h-20,18,18);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    private static class RoundedButton extends JButton {
+        public RoundedButton(String text) {
+            super(text);
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setOpaque(false);
+            setPreferredSize(new Dimension(240,40));
+            setMaximumSize(new Dimension(Short.MAX_VALUE,40));
+            setFont(new Font("Segoe UI", Font.BOLD, 14));
+            setForeground(Color.WHITE);
+            setBackground(PRIMARY);
+            addMouseListener(new MouseAdapter(){
+                @Override public void mouseEntered(MouseEvent e) { setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
             });
-            
-            login.addSalirListener(e -> System.exit(0));
-        });
+        }
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Shape s = new RoundRectangle2D.Double(0,0,getWidth(),getHeight(),12,12);
+            g2.setColor(getBackground().darker());
+            g2.fill(s);
+            g2.setColor(getBackground());
+            g2.fill(new RoundRectangle2D.Double(1,1,getWidth()-2,getHeight()-2,10,10));
+            g2.setColor(getForeground());
+            FontMetrics fm = g2.getFontMetrics();
+            int sw = fm.stringWidth(getText());
+            int sh = fm.getAscent();
+            g2.drawString(getText(), (getWidth()-sw)/2, (getHeight()+sh)/2-3);
+            g2.dispose();
+        }
+    }
+
+    private static class MaterialField extends JPanel {
+        private JTextField field;
+        public MaterialField(Icon icon, String placeholder) {
+            setLayout(new BorderLayout());
+            setOpaque(false);
+            JLabel ic = new JLabel(icon);
+            ic.setBorder(new EmptyBorder(0,6,0,8));
+            field = new JTextField();
+            field.setBorder(BorderFactory.createEmptyBorder(10,8,10,8));
+            field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            field.setText(placeholder);
+            field.setForeground(Color.GRAY);
+            field.addFocusListener(new FocusAdapter(){
+                public void focusGained(FocusEvent e){ if (field.getText().equals(placeholder)) { field.setText(""); field.setForeground(Color.BLACK); } }
+                public void focusLost(FocusEvent e){ if (field.getText().isEmpty()) { field.setForeground(Color.GRAY); field.setText(placeholder); } }
+            });
+            add(ic, BorderLayout.WEST);
+            add(field, BorderLayout.CENTER);
+            setMaximumSize(new Dimension(Short.MAX_VALUE,44));
+            setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+        }
+        public String getText(){ String t = field.getText(); return t == null ? "" : t; }
+        public void requestFocus(){ field.requestFocus(); }
+    }
+
+    private static class MaterialPasswordField extends JPanel {
+        private JPasswordField pf;
+        public MaterialPasswordField(Icon icon, String placeholder) {
+            setLayout(new BorderLayout()); setOpaque(false);
+            JLabel ic = new JLabel(icon);
+            ic.setBorder(new EmptyBorder(0,6,0,8));
+            pf = new JPasswordField();
+            pf.setBorder(BorderFactory.createEmptyBorder(10,8,10,8));
+            pf.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            pf.setEchoChar((char)0);
+            pf.setText(placeholder);
+            pf.setForeground(Color.GRAY);
+            pf.addFocusListener(new FocusAdapter(){
+                public void focusGained(FocusEvent e){ if (String.valueOf(pf.getPassword()).equals(placeholder)) { pf.setText(""); pf.setEchoChar('\u2022'); pf.setForeground(Color.BLACK); } }
+                public void focusLost(FocusEvent e){ if (String.valueOf(pf.getPassword()).isEmpty()) { pf.setForeground(Color.GRAY); pf.setText(placeholder); pf.setEchoChar((char)0); } }
+            });
+            JButton eye = new JButton("👁");
+            eye.setBorderPainted(false); eye.setContentAreaFilled(false); eye.setFocusPainted(false);
+            eye.addActionListener(e -> {
+                if (pf.getEchoChar() == (char)0) pf.setEchoChar('\u2022'); else pf.setEchoChar((char)0);
+            });
+            eye.setPreferredSize(new Dimension(40,40));
+            add(ic, BorderLayout.WEST);
+            add(pf, BorderLayout.CENTER);
+            add(eye, BorderLayout.EAST);
+            setMaximumSize(new Dimension(Short.MAX_VALUE,44));
+            setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+        }
+        public char[] getPassword(){ return pf.getPassword(); }
+        public void requestFocus(){ pf.requestFocus(); }
+    }
+
+    private static class IconLoader {
+        public Icon load(String path) {
+            try {
+                java.net.URL res = Login.class.getResource(path);
+                if (res != null) return new ImageIcon(res);
+            } catch (Exception ignored) {}
+            return null;
+        }
+    }
+
+    private static class LoadingSpinner extends JComponent {
+        private int size; private int angle = 0; private Timer t;
+        public LoadingSpinner(int size) { this.size = size; setPreferredSize(new Dimension(size+4,size+4));
+            t = new Timer();
+            t.scheduleAtFixedRate(new TimerTask(){ public void run(){ angle = (angle+15)%360; SwingUtilities.invokeLater(() -> repaint()); } }, 0, 80);
+            setVisible(false);
+        }
+        @Override protected void paintComponent(Graphics g){ super.paintComponent(g); Graphics2D g2 = (Graphics2D) g.create(); g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); g2.setStroke(new BasicStroke(3f)); g2.setColor(PRIMARY); g2.drawArc(2,2,size,size,angle,90); g2.dispose(); }
+    }
+
+    private static class Animations {
+        public static void shakeWindow(Window w) {
+            final Point p = w.getLocation();
+            final int shakeDist = 8; final int cycles = 10;
+            new Thread(() -> {
+                try {
+                    for (int i=0;i<cycles;i++) {
+                        int dx = (i%2==0)?shakeDist:-shakeDist;
+                        SwingUtilities.invokeLater(() -> w.setLocation(p.x+dx, p.y));
+                        Thread.sleep(20);
+                    }
+                } catch (InterruptedException ignored) {}
+                SwingUtilities.invokeLater(() -> w.setLocation(p));
+            }).start();
+        }
     }
 }

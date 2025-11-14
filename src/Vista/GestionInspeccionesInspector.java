@@ -8,22 +8,23 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class GestionInspecciones extends JFrame {
-     // Componentes de la interfaz gráfica
+public class GestionInspeccionesInspector extends JFrame {
     private JTable tablaInspecciones;
     private DefaultTableModel modeloTabla;
     private JTextField txtId, txtFecha, txtEstado, txtObservaciones;
     private JComboBox<String> cmbInspector;
     private JButton btnAgregar, btnActualizar, btnEliminar, btnLimpiar, btnBuscar, btnRefrescar, btnProgramar;
-    // Controladores para acceso a datos
     private InspeccionController controller;
     private InspectorController inspectorController;
     
+    // Variable para almacenar el ID de la inspección seleccionada internamente
+    private int idInspeccionSeleccionada = -1;
     // Calendario popup
     private JDialog calendarioDialog;
     private JPanel panelCalendario;
@@ -31,11 +32,7 @@ public class GestionInspecciones extends JFrame {
     private int mesActual;
     private int anioActual;
 
-    /**
-     * Constructor principal de la clase GestionInspecciones
-     * Inicializa los controladores y componentes de la interfaz
-     */
-    public GestionInspecciones() {
+    public GestionInspeccionesInspector() {
         this.controller = new InspeccionController();
         this.inspectorController = new InspectorController();
         
@@ -50,29 +47,19 @@ public class GestionInspecciones extends JFrame {
         cargarCombos();
     }
 
-    /**
-     * Inicializa y configura todos los componentes visuales de la interfaz
-     * Establece el diseño principal, tamaños y comportamientos básicos
-     */
     private void initComponents() {
-        setTitle("Gestión de Inspecciones - CRUD Completo");
+        setTitle("Gestión de Inspecciones - Modo Inspector");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1100, 700);
         setLocationRelativeTo(null);
         setResizable(true);
 
-        // Panel principal
         JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         panelPrincipal.setBackground(new Color(240, 240, 240));
 
-        // Panel de formulario
         JPanel panelFormulario = crearPanelFormulario();
-
-        // Panel de botones principales
         JPanel panelBotonesPrincipales = crearPanelBotonesPrincipales();
-
-        // Crear tabla y scroll pane directamente
         JScrollPane scrollTabla = crearScrollTabla();
 
         panelPrincipal.add(panelFormulario, BorderLayout.WEST);
@@ -87,7 +74,7 @@ public class GestionInspecciones extends JFrame {
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(230, 126, 34), 2),
-            "Datos de la Inspección"
+            "Programar Inspección - Modo Inspector"
         ));
         panelFormulario.setBackground(Color.WHITE);
         panelFormulario.setPreferredSize(new Dimension(350, 0));
@@ -123,20 +110,32 @@ public class GestionInspecciones extends JFrame {
         panelFecha.add(btnCalendario, BorderLayout.EAST);
         panelFormulario.add(panelFecha, gbc);
 
-        // Campo Estado
+        // Campo Estado con sugerencias para inspector
         gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Estado:*"), gbc);
         gbc.gridx = 1;
-        txtEstado = new JTextField();
-        txtEstado.setToolTipText("Estados sugeridos: Programada, Pendiente, Agendada, Completada, Cancelada");
-        panelFormulario.add(txtEstado, gbc);
+        
+        JPanel panelEstado = new JPanel(new BorderLayout());
+        panelEstado.setBackground(Color.WHITE);
+        txtEstado = new JTextField("Programada");
+        txtEstado.setToolTipText("Estados sugeridos: Programada, Pendiente, Agendada, En proceso");
+        panelEstado.add(txtEstado, BorderLayout.CENTER);
+        
+        JButton btnSugerirEstado = new JButton("💡");
+        btnSugerirEstado.setToolTipText("Sugerencias de estado");
+        btnSugerirEstado.setBorderPainted(false);
+        btnSugerirEstado.setContentAreaFilled(false);
+        btnSugerirEstado.setFocusPainted(false);
+        btnSugerirEstado.addActionListener(e -> mostrarSugerenciasEstado());
+        panelEstado.add(btnSugerirEstado, BorderLayout.EAST);
+        panelFormulario.add(panelEstado, gbc);
 
         // Campo Observaciones
         gbc.gridx = 0; gbc.gridy = 2;
         panelFormulario.add(new JLabel("Observaciones:"), gbc);
         gbc.gridx = 1;
         txtObservaciones = new JTextField();
-        txtObservaciones.setToolTipText("Observaciones para la inspección");
+        txtObservaciones.setToolTipText("Observaciones para la inspección programada");
         panelFormulario.add(txtObservaciones, gbc);
 
         // ComboBox Inspector
@@ -146,14 +145,14 @@ public class GestionInspecciones extends JFrame {
         cmbInspector = new JComboBox<>();
         panelFormulario.add(cmbInspector, gbc);
 
-        // Información para el usuario
+        // Información para el inspector
         gbc.gridx = 0; gbc.gridy = 4;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(10, 5, 5, 5);
-        JLabel lblInfo = new JLabel("<html><small>💡 Haga clic en 📅 para abrir el calendario y seleccionar fecha fácilmente</small></html>");
-        lblInfo.setForeground(new Color(100, 100, 100));
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        panelFormulario.add(lblInfo, gbc);
+        JLabel lblInfoInspector = new JLabel("<html><small>💡 Haga clic en 📅 para abrir el calendario y seleccionar fecha fácilmente</small></html>");
+        lblInfoInspector.setForeground(new Color(100, 100, 100));
+        lblInfoInspector.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        panelFormulario.add(lblInfoInspector, gbc);
 
         // Panel de botones del formulario
         gbc.gridx = 0; gbc.gridy = 5;
@@ -192,7 +191,7 @@ public class GestionInspecciones extends JFrame {
         tablaInspecciones.getTableHeader().setForeground(Color.WHITE);
         tablaInspecciones.setRowHeight(25);
         
-        // Renderer para filas alternadas
+        // Renderer personalizado para resaltar inspecciones futuras
         tablaInspecciones.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -202,6 +201,20 @@ public class GestionInspecciones extends JFrame {
                 if (!isSelected) {
                     c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(240, 240, 240));
                     c.setForeground(Color.BLACK);
+                    
+                    // Resaltar inspecciones futuras
+                    try {
+                        String fechaStr = modeloTabla.getValueAt(row, 0).toString();
+                        String estado = modeloTabla.getValueAt(row, 1).toString();
+                        Date fechaInspeccion = new SimpleDateFormat("yyyy-MM-dd").parse(fechaStr);
+                        Date hoy = new Date();
+                        
+                        if (fechaInspeccion.after(hoy) && ("Programada".equals(estado) || "Pendiente".equals(estado) || "Agendada".equals(estado))) {
+                            c.setBackground(new Color(230, 255, 230)); // Verde claro para futuras
+                        }
+                    } catch (Exception e) {
+                        // Ignorar errores de parseo
+                    }
                 } else {
                     c.setBackground(new Color(41, 128, 185));
                     c.setForeground(Color.WHITE);
@@ -213,7 +226,7 @@ public class GestionInspecciones extends JFrame {
         JScrollPane scrollTabla = new JScrollPane(tablaInspecciones);
         scrollTabla.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(230, 126, 34), 2),
-            "Lista de Inspecciones"
+            "Lista de Inspecciones - Modo Inspector"
         ));
 
         return scrollTabla;
@@ -223,24 +236,24 @@ public class GestionInspecciones extends JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         panelBotones.setBackground(new Color(240, 240, 240));
         
-        btnAgregar = crearBoton("Agregar Inspección", new Color(39, 174, 96));
-        btnActualizar = crearBoton("Actualizar Inspección", new Color(41, 128, 185));
-        btnEliminar = crearBoton("Eliminar Inspección", new Color(231, 76, 60));
-        btnRefrescar = crearBoton("Refrescar Datos", new Color(155, 89, 182));
-        btnProgramar = crearBoton("Programar Futura", new Color(230, 126, 34));
+        btnProgramar = crearBoton("🔄 Programar Futura", new Color(230, 126, 34));
+        btnAgregar = crearBoton("➕ Agregar", new Color(39, 174, 96));
+        btnActualizar = crearBoton("✏️ Actualizar", new Color(41, 128, 185));
+        btnEliminar = crearBoton("🗑️ Eliminar", new Color(231, 76, 60));
+        btnRefrescar = crearBoton("🔄 Refrescar", new Color(155, 89, 182));
         
-        // Tooltips para mejor usabilidad
-        btnAgregar.setToolTipText("Agregar una nueva inspección a la base de datos");
+        // Tooltips especializados para inspector
+        btnProgramar.setToolTipText("Configurar automáticamente para programar inspección futura");
+        btnAgregar.setToolTipText("Agregar nueva inspección a la base de datos");
         btnActualizar.setToolTipText("Actualizar la inspección seleccionada");
         btnEliminar.setToolTipText("Eliminar la inspección seleccionada");
         btnRefrescar.setToolTipText("Actualizar la tabla con los últimos datos");
-        btnProgramar.setToolTipText("Configurar formulario para programar inspección futura");
-        
+
+        panelBotones.add(btnProgramar);
         panelBotones.add(btnAgregar);
         panelBotones.add(btnActualizar);
         panelBotones.add(btnEliminar);
         panelBotones.add(btnRefrescar);
-        panelBotones.add(btnProgramar);
         
         return panelBotones;
     }
@@ -252,7 +265,7 @@ public class GestionInspecciones extends JFrame {
         boton.setFocusPainted(false);
         boton.setBorderPainted(false);
         boton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        boton.setPreferredSize(new Dimension(150, 35));
+        boton.setPreferredSize(new Dimension(140, 35));
         return boton;
     }
 
@@ -266,13 +279,13 @@ public class GestionInspecciones extends JFrame {
     }
 
     private void agregarActionListeners() {
+        btnProgramar.addActionListener(e -> programarInspeccionFutura());
         btnAgregar.addActionListener(e -> agregarInspeccion());
         btnActualizar.addActionListener(e -> actualizarInspeccion());
         btnEliminar.addActionListener(e -> eliminarInspeccion());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
         btnBuscar.addActionListener(e -> buscarInspecciones());
         btnRefrescar.addActionListener(e -> cargarDatos());
-        btnProgramar.addActionListener(e -> programarInspeccionFutura());
 
         tablaInspecciones.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tablaInspecciones.getSelectedRow() != -1) {
@@ -284,41 +297,34 @@ public class GestionInspecciones extends JFrame {
     // MÉTODOS DEL CALENDARIO
     private void crearCalendarioPopup() {
         calendarioDialog = new JDialog(this, "Seleccionar Fecha", true);
-        calendarioDialog.setSize(350, 400);
+        calendarioDialog.setSize(300, 350);
         calendarioDialog.setResizable(false);
         
         // Panel principal del calendario
-        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panelPrincipal.setBackground(Color.WHITE);
         
         // Panel de control (mes y año)
         JPanel panelControl = new JPanel(new BorderLayout());
         panelControl.setBackground(new Color(230, 126, 34));
-        panelControl.setPreferredSize(new Dimension(320, 40));
-        panelControl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         
         // Botones de navegación
-        JPanel panelNavegacion = new JPanel(new GridLayout(1, 2, 5, 0));
+        JPanel panelNavegacion = new JPanel(new GridLayout(1, 2));
         panelNavegacion.setBackground(new Color(230, 126, 34));
-        panelNavegacion.setPreferredSize(new Dimension(80, 30));
         
         JButton btnMesAnterior = new JButton("◀");
         btnMesAnterior.setBackground(new Color(210, 106, 14));
         btnMesAnterior.setForeground(Color.WHITE);
-        btnMesAnterior.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnMesAnterior.setFocusPainted(false);
         btnMesAnterior.setBorderPainted(false);
-        btnMesAnterior.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         btnMesAnterior.addActionListener(e -> cambiarMes(-1));
         
         JButton btnMesSiguiente = new JButton("▶");
         btnMesSiguiente.setBackground(new Color(210, 106, 14));
         btnMesSiguiente.setForeground(Color.WHITE);
-        btnMesSiguiente.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnMesSiguiente.setFocusPainted(false);
         btnMesSiguiente.setBorderPainted(false);
-        btnMesSiguiente.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         btnMesSiguiente.addActionListener(e -> cambiarMes(1));
         
         panelNavegacion.add(btnMesAnterior);
@@ -327,26 +333,29 @@ public class GestionInspecciones extends JFrame {
         // Label del mes y año
         lblMesAnio = new JLabel("", JLabel.CENTER);
         lblMesAnio.setForeground(Color.WHITE);
-        lblMesAnio.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblMesAnio.setFont(new Font("Segoe UI", Font.BOLD, 14));
         
         panelControl.add(panelNavegacion, BorderLayout.WEST);
         panelControl.add(lblMesAnio, BorderLayout.CENTER);
         
-        // Panel del calendario con tamaño fijo
-        panelCalendario = new JPanel(new GridLayout(7, 7, 3, 3));
+        // Panel del calendario
+        panelCalendario = new JPanel(new GridLayout(0, 7, 2, 2));
         panelCalendario.setBackground(Color.WHITE);
-        panelCalendario.setPreferredSize(new Dimension(320, 250));
-        panelCalendario.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Panel de botones
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        JPanel panelBotones = new JPanel(new FlowLayout());
         panelBotones.setBackground(Color.WHITE);
-        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
-        JButton btnHoy = crearBotonCalendario("Hoy", new Color(39, 174, 96));
+        JButton btnHoy = new JButton("Hoy");
+        btnHoy.setBackground(new Color(39, 174, 96));
+        btnHoy.setForeground(Color.WHITE);
+        btnHoy.setFocusPainted(false);
         btnHoy.addActionListener(e -> seleccionarFechaHoy());
         
-        JButton btnCancelar = crearBotonCalendario("Cancelar", new Color(192, 57, 43));
+        JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.setBackground(new Color(192, 57, 43));
+        btnCancelar.setForeground(Color.WHITE);
+        btnCancelar.setFocusPainted(false);
         btnCancelar.addActionListener(e -> calendarioDialog.setVisible(false));
         
         panelBotones.add(btnHoy);
@@ -360,24 +369,13 @@ public class GestionInspecciones extends JFrame {
         actualizarCalendario();
     }
 
-    private JButton crearBotonCalendario(String texto, Color color) {
-        JButton boton = new JButton(texto);
-        boton.setBackground(color);
-        boton.setForeground(Color.WHITE);
-        boton.setFocusPainted(false);
-        boton.setBorderPainted(false);
-        boton.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        boton.setPreferredSize(new Dimension(100, 35));
-        return boton;
-    }
-
     private void actualizarCalendario() {
         // Actualizar label
         String[] meses = {"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
                          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"};
         lblMesAnio.setText(meses[mesActual] + " " + anioActual);
         
-        // Limpiar panel COMPLETAMENTE
+        // Limpiar panel
         panelCalendario.removeAll();
         
         // Agregar encabezados de días
@@ -385,13 +383,8 @@ public class GestionInspecciones extends JFrame {
         for (String dia : diasSemana) {
             JLabel lblDia = new JLabel(dia, JLabel.CENTER);
             lblDia.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            lblDia.setForeground(new Color(70, 70, 70));
-            lblDia.setBackground(new Color(240, 240, 240));
-            lblDia.setOpaque(true);
-            lblDia.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1),
-                BorderFactory.createEmptyBorder(5, 2, 5, 2)
-            ));
+            lblDia.setForeground(new Color(100, 100, 100));
+            lblDia.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
             panelCalendario.add(lblDia);
         }
         
@@ -405,11 +398,7 @@ public class GestionInspecciones extends JFrame {
         
         // Agregar espacios vacíos para alinear el primer día
         for (int i = 0; i < primerDiaSemana; i++) {
-            JLabel lblVacio = new JLabel("");
-            lblVacio.setBackground(Color.WHITE);
-            lblVacio.setOpaque(true);
-            lblVacio.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
-            panelCalendario.add(lblVacio);
+            panelCalendario.add(new JLabel(""));
         }
         
         // Agregar botones para cada día
@@ -418,78 +407,32 @@ public class GestionInspecciones extends JFrame {
             final int diaSeleccionado = dia;
             JButton btnDia = new JButton(String.valueOf(dia));
             btnDia.setFocusPainted(false);
-            btnDia.setBorderPainted(true);
-            btnDia.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+            btnDia.setBorderPainted(false);
             btnDia.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            btnDia.setOpaque(true);
-            btnDia.setContentAreaFilled(true);
-            btnDia.setPreferredSize(new Dimension(40, 30));
             
             // Verificar si es hoy
-            boolean esHoy = (dia == hoy.get(Calendar.DAY_OF_MONTH) && 
-                            mesActual == hoy.get(Calendar.MONTH) && 
-                            anioActual == hoy.get(Calendar.YEAR));
-            
-            if (esHoy) {
+            if (dia == hoy.get(Calendar.DAY_OF_MONTH) && 
+                mesActual == hoy.get(Calendar.MONTH) && 
+                anioActual == hoy.get(Calendar.YEAR)) {
                 btnDia.setBackground(new Color(52, 152, 219));
                 btnDia.setForeground(Color.WHITE);
-                btnDia.setFont(new Font("Segoe UI", Font.BOLD, 12));
             } else {
                 btnDia.setBackground(Color.WHITE);
                 btnDia.setForeground(Color.BLACK);
             }
             
-            // Efecto hover
-            btnDia.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    if (!esHoy) {
-                        btnDia.setBackground(new Color(230, 240, 255));
-                    }
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (!esHoy) {
-                        btnDia.setBackground(Color.WHITE);
-                    }
-                }
-            });
+            // Verificar si es fecha futura (para resaltar)
+            cal.set(anioActual, mesActual, dia);
+            if (cal.after(hoy)) {
+                btnDia.setBackground(new Color(230, 255, 230)); // Verde claro para futuras
+            }
             
             btnDia.addActionListener(e -> seleccionarFecha(diaSeleccionado));
             panelCalendario.add(btnDia);
         }
         
-        // Rellenar los días restantes para completar la cuadrícula (6 semanas)
-        int totalCeldas = 42; // 7 días × 6 semanas
-        int celdasOcupadas = primerDiaSemana + diasEnMes;
-        int celdasVacias = totalCeldas - celdasOcupadas;
-        
-        for (int i = 0; i < celdasVacias; i++) {
-            JLabel lblVacio = new JLabel("");
-            lblVacio.setBackground(Color.WHITE);
-            lblVacio.setOpaque(true);
-            lblVacio.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
-            panelCalendario.add(lblVacio);
-        }
-        
-        // Forzar la actualización visual
         panelCalendario.revalidate();
         panelCalendario.repaint();
-    }
-
-    private void mostrarCalendario() {
-        // Asegurar que el calendario esté actualizado
-        Calendar ahora = Calendar.getInstance();
-        mesActual = ahora.get(Calendar.MONTH);
-        anioActual = ahora.get(Calendar.YEAR);
-        actualizarCalendario();
-        
-        // Posicionar el calendario cerca del campo de fecha
-        Point location = txtFecha.getLocationOnScreen();
-        calendarioDialog.setLocation(
-            Math.max(0, location.x - 50), 
-            Math.max(0, location.y + txtFecha.getHeight())
-        );
-        
-        calendarioDialog.setVisible(true);
     }
 
     private void cambiarMes(int cambio) {
@@ -513,6 +456,22 @@ public class GestionInspecciones extends JFrame {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         txtFecha.setText(sdf.format(fechaSeleccionada));
         
+        // Si es fecha futura, sugerir estado "Programada"
+        Calendar hoy = Calendar.getInstance();
+        if (cal.after(hoy)) {
+            txtEstado.setText("Programada");
+            if (txtObservaciones.getText().isEmpty()) {
+                txtObservaciones.setText("Inspección programada por el inspector - pendiente de realización");
+            }
+            
+            JOptionPane.showMessageDialog(this,
+                "✅ Fecha seleccionada: " + sdf.format(fechaSeleccionada) + "\n\n" +
+                "📊 Estado establecido como 'Programada'\n" +
+                "👨‍🌾 El productor podrá ver esta inspección en 'Próximas Inspecciones'",
+                "Fecha Programada - Modo Inspector",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+        
         calendarioDialog.setVisible(false);
     }
 
@@ -523,7 +482,75 @@ public class GestionInspecciones extends JFrame {
         seleccionarFecha(hoy.get(Calendar.DAY_OF_MONTH));
     }
 
+    private void mostrarCalendario() {
+        // Actualizar el calendario con la fecha actual
+        Calendar ahora = Calendar.getInstance();
+        mesActual = ahora.get(Calendar.MONTH);
+        anioActual = ahora.get(Calendar.YEAR);
+        actualizarCalendario();
+        
+        // Posicionar el calendario cerca del campo de fecha
+        Point location = txtFecha.getLocationOnScreen();
+        calendarioDialog.setLocation(
+            Math.max(0, location.x - 50), 
+            Math.max(0, location.y + txtFecha.getHeight())
+        );
+        calendarioDialog.setVisible(true);
+    }
+
     // MÉTODOS DE LA LÓGICA DE NEGOCIO
+    private void mostrarSugerenciasEstado() {
+        String[] estadosSugeridos = {
+            "Programada - Para inspecciones futuras",
+            "Pendiente - Por realizar", 
+            "Agendada - Confirmada con productor",
+            "En proceso - Actualmente en ejecución",
+            "Completada - Finalizada exitosamente",
+            "Cancelada - No realizada"
+        };
+        
+        String seleccion = (String) JOptionPane.showInputDialog(this,
+            "Seleccione un estado sugerido:",
+            "Sugerencias de Estado - Modo Inspector",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            estadosSugeridos,
+            estadosSugeridos[0]);
+            
+        if (seleccion != null) {
+            // Extraer solo la primera palabra del estado
+            String estado = seleccion.split(" - ")[0];
+            txtEstado.setText(estado);
+        }
+    }
+
+    private void programarInspeccionFutura() {
+        // Establecer valores por defecto para una inspección futura
+        txtFecha.setText(obtenerFechaDias(7)); // Por defecto en 7 días
+        txtEstado.setText("Programada");
+        txtObservaciones.setText("Inspección programada por el inspector - pendiente de realización");
+        
+        // Seleccionar primer inspector si está disponible
+        if (cmbInspector.getItemCount() > 0) cmbInspector.setSelectedIndex(0);
+        
+        JOptionPane.showMessageDialog(this,
+            "✅ Formulario configurado para programar inspección futura\n\n" +
+            "📅 Fecha establecida: " + obtenerFechaDias(7) + " (en 7 días)\n" +
+            "📊 Estado: Programada\n" +
+            "👨‍🌾 El productor podrá ver esta inspección en 'Próximas Inspecciones'\n\n" +
+            "💡 Puede cambiar la fecha haciendo clic en el botón 📅 del calendario",
+            "Programar Inspección - Modo Inspector",
+            JOptionPane.INFORMATION_MESSAGE);
+            
+        txtObservaciones.requestFocus();
+    }
+
+    private String obtenerFechaDias(int dias) {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, dias);
+        return new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
+    }
+
     private void cargarDatos() {
         limpiarTabla();
         List<Inspeccion> inspecciones = controller.obtenerTodasInspecciones();
@@ -531,6 +558,7 @@ public class GestionInspecciones extends JFrame {
         if (inspecciones.isEmpty()) {
             mostrarMensajeInformacion("No hay inspecciones registradas en la base de datos.");
         } else {
+            int inspeccionesFuturas = 0;
             for (Inspeccion inspeccion : inspecciones) {
                 Inspector inspector = inspectorController.obtenerInspector(inspeccion.getIdInspector());
                 
@@ -541,8 +569,18 @@ public class GestionInspecciones extends JFrame {
                     inspector != null ? inspector.getNombresCompletos() : "N/A"
                 };
                 modeloTabla.addRow(fila);
+                
+                // Contar inspecciones futuras
+                if (inspeccion.getFechaInspeccion().after(new Date())) {
+                    inspeccionesFuturas++;
+                }
             }
-            mostrarMensajeInformacion("Se cargaron " + inspecciones.size() + " inspección(es) desde la base de datos.");
+            
+            String mensaje = "Se cargaron " + inspecciones.size() + " inspección(es) desde la base de datos.";
+            if (inspeccionesFuturas > 0) {
+                mensaje += "\n📅 " + inspeccionesFuturas + " inspección(es) programada(s) para el futuro.";
+            }
+            mostrarMensajeInformacion(mensaje);
         }
     }
 
@@ -553,11 +591,12 @@ public class GestionInspecciones extends JFrame {
     private void limpiarFormulario() {
         txtId.setText("");
         txtFecha.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-        txtEstado.setText("");
+        txtEstado.setText("Programada");
         txtObservaciones.setText("");
         if (cmbInspector.getItemCount() > 0) cmbInspector.setSelectedIndex(0);
         tablaInspecciones.clearSelection();
-        txtEstado.requestFocus();
+        idInspeccionSeleccionada = -1;
+        txtObservaciones.requestFocus();
     }
 
     private void seleccionarInspeccionDeTabla() {
@@ -567,11 +606,11 @@ public class GestionInspecciones extends JFrame {
             String estado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
             String inspectorNombre = modeloTabla.getValueAt(filaSeleccionada, 3).toString();
             
-            // Buscar la inspección por los datos visibles
+            // Buscar la inspección por los datos visibles para obtener el ID internamente
             List<Inspeccion> inspecciones = controller.buscarInspecciones(estado);
             for (Inspeccion inspeccion : inspecciones) {
                 if (new SimpleDateFormat("yyyy-MM-dd").format(inspeccion.getFechaInspeccion()).equals(fecha)) {
-                    txtId.setText(String.valueOf(inspeccion.getIdInspeccion()));
+                    idInspeccionSeleccionada = inspeccion.getIdInspeccion();
                     break;
                 }
             }
@@ -601,19 +640,24 @@ public class GestionInspecciones extends JFrame {
 
         try {
             Inspeccion nuevaInspeccion = new Inspeccion();
-
-            // Convertir fecha de String a Date
-            Date fecha = new SimpleDateFormat("yyyy-MM-dd").parse(txtFecha.getText().trim());
-            nuevaInspeccion.setFechaInspeccion(fecha);
-
+            nuevaInspeccion.setFechaInspeccion(new SimpleDateFormat("yyyy-MM-dd").parse(txtFecha.getText()));
             nuevaInspeccion.setEstado(txtEstado.getText().trim());
             nuevaInspeccion.setObservaciones(txtObservaciones.getText().trim());
-
+            
             // Obtener ID del inspector
             nuevaInspeccion.setIdInspector(obtenerIdDeCombo(cmbInspector.getSelectedItem().toString()));
 
             if (controller.agregarInspeccion(nuevaInspeccion)) {
-                mostrarMensajeExito("Inspección agregada exitosamente");
+                // Verificar si es una inspección futura para mostrar mensaje especial
+                Date fechaInspeccion = nuevaInspeccion.getFechaInspeccion();
+                Date hoy = new Date();
+                String mensajeExito = "✅ Inspección agregada exitosamente";
+                
+                if (fechaInspeccion.after(hoy)) {
+                    mensajeExito += "\n\n📅 Esta inspección aparecerá en 'Próximas Inspecciones' del productor";
+                }
+                
+                mostrarMensajeExito(mensajeExito);
                 cargarDatos();
                 limpiarFormulario();
             } else {
@@ -625,7 +669,7 @@ public class GestionInspecciones extends JFrame {
     }
 
     private void actualizarInspeccion() {
-        if (txtId.getText().isEmpty()) {
+        if (idInspeccionSeleccionada == -1) {
             mostrarMensajeError("Seleccione una inspección de la tabla para actualizar");
             return;
         }
@@ -636,20 +680,16 @@ public class GestionInspecciones extends JFrame {
 
         try {
             Inspeccion inspeccion = new Inspeccion();
-            inspeccion.setIdInspeccion(Integer.parseInt(txtId.getText()));
-
-            // Convertir fecha de String a Date
-            Date fecha = new SimpleDateFormat("yyyy-MM-dd").parse(txtFecha.getText().trim());
-            inspeccion.setFechaInspeccion(fecha);
-
+            inspeccion.setIdInspeccion(idInspeccionSeleccionada);
+            inspeccion.setFechaInspeccion(new SimpleDateFormat("yyyy-MM-dd").parse(txtFecha.getText()));
             inspeccion.setEstado(txtEstado.getText().trim());
             inspeccion.setObservaciones(txtObservaciones.getText().trim());
-
+            
             // Obtener ID del inspector
             inspeccion.setIdInspector(obtenerIdDeCombo(cmbInspector.getSelectedItem().toString()));
 
             if (controller.actualizarInspeccion(inspeccion)) {
-                mostrarMensajeExito("Inspección actualizada exitosamente");
+                mostrarMensajeExito("✅ Inspección actualizada exitosamente");
                 cargarDatos();
                 limpiarFormulario();
             } else {
@@ -667,38 +707,27 @@ public class GestionInspecciones extends JFrame {
             return;
         }
 
-        String fecha = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
-        String estado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
-        
-        List<Inspeccion> inspecciones = controller.buscarInspecciones(estado);
-        int idInspeccion = 0;
-        for (Inspeccion inspeccion : inspecciones) {
-            if (new SimpleDateFormat("yyyy-MM-dd").format(inspeccion.getFechaInspeccion()).equals(fecha)) {
-                idInspeccion = inspeccion.getIdInspeccion();
-                break;
-            }
-        }
-
-        if (idInspeccion == 0) {
-            mostrarMensajeError("No se pudo encontrar la inspección seleccionada");
+        if (idInspeccionSeleccionada == -1) {
+            mostrarMensajeError("No se pudo identificar la inspección seleccionada");
             return;
         }
 
-        String nombreInspeccion = "Fecha: " + fecha + ", Estado: " + estado;
+        String fecha = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+        String estado = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Está seguro que desea eliminar la inspección?\n" +
-            nombreInspeccion + "\n\n" +
-            "Se eliminarán automáticamente todos los lugares de producción asociados a esta inspección.\n" +
+            "¿Está seguro que desea eliminar la inspección?\n\n" +
+            "📅 Fecha: " + fecha + "\n" +
+            "📊 Estado: " + estado + "\n\n" +
             "Esta acción no se puede deshacer.",
-            "Confirmar Eliminación",
+            "Confirmar Eliminación - Modo Inspector",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                if (controller.eliminarInspeccion(idInspeccion)) {
-                    mostrarMensajeExito("Inspección y lugares de producción asociados eliminados exitosamente");
+                if (controller.eliminarInspeccion(idInspeccionSeleccionada)) {
+                    mostrarMensajeExito("✅ Inspección eliminada exitosamente");
                     cargarDatos();
                     limpiarFormulario();
                 } else {
@@ -712,8 +741,8 @@ public class GestionInspecciones extends JFrame {
 
     private void buscarInspecciones() {
         String criterio = JOptionPane.showInputDialog(this, 
-            "Ingrese el estado u observaciones a buscar:",
-            "Buscar Inspecciones",
+            "Ingrese el estado, fecha o observaciones a buscar:",
+            "Buscar Inspecciones - Modo Inspector",
             JOptionPane.QUESTION_MESSAGE);
 
         if (criterio != null && !criterio.trim().isEmpty()) {
@@ -735,7 +764,7 @@ public class GestionInspecciones extends JFrame {
                         };
                         modeloTabla.addRow(fila);
                     }
-                    mostrarMensajeExito("Se encontraron " + resultados.size() + " inspección(es)");
+                    mostrarMensajeExito("✅ Se encontraron " + resultados.size() + " inspección(es)");
                 }
             } catch (Exception ex) {
                 mostrarMensajeError("Error durante la búsqueda: " + ex.getMessage());
@@ -743,33 +772,6 @@ public class GestionInspecciones extends JFrame {
         } else if (criterio != null) {
             cargarDatos();
         }
-    }
-
-    private void programarInspeccionFutura() {
-        // Establecer valores por defecto para una inspección futura
-        txtFecha.setText(obtenerFechaDias(7)); // Por defecto en 7 días
-        txtEstado.setText("Programada");
-        txtObservaciones.setText("Inspección programada - pendiente de realización");
-        
-        // Seleccionar primer inspector si está disponible
-        if (cmbInspector.getItemCount() > 0) cmbInspector.setSelectedIndex(0);
-        
-        JOptionPane.showMessageDialog(this,
-            "✅ Formulario configurado para programar inspección futura\n\n" +
-            "• Fecha establecida: " + obtenerFechaDias(7) + " (en 7 días)\n" +
-            "• Estado: Programada\n" +
-            "• El productor podrá ver esta inspección en 'Próximas Inspecciones'\n" +
-            "• Complete los datos y haga clic en 'Agregar Inspección'",
-            "Programar Inspección Futura",
-            JOptionPane.INFORMATION_MESSAGE);
-            
-        txtObservaciones.requestFocus();
-    }
-
-    private String obtenerFechaDias(int dias) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, dias);
-        return new SimpleDateFormat("yyyy-MM-dd").format(cal.getTime());
     }
 
     private boolean validarCamposObligatorios() {
@@ -801,20 +803,20 @@ public class GestionInspecciones extends JFrame {
     }
 
     private void mostrarMensajeExito(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Éxito - Modo Inspector", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void mostrarMensajeError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Error - Modo Inspector", JOptionPane.ERROR_MESSAGE);
     }
 
     private void mostrarMensajeInformacion(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Información", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Información - Modo Inspector", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new GestionInspecciones().setVisible(true);
+            new GestionInspeccionesInspector().setVisible(true);
         });
     }
 }

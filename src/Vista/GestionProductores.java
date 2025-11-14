@@ -76,7 +76,7 @@ public class GestionProductores extends JFrame {
      * @return JPanel configurado con GridBagLayout conteniendo todos los campos del formulario
      * 
      * Campos incluidos:
-     * - ID Productor (campo no editable, auto-generado)
+     * - ID Productor (campo oculto, auto-generado)
      * - Nombre Completo (campo obligatorio)
      * - Tipo Identificación (combo box con opciones predefinidas)
      * - Rol (campo obligatorio)
@@ -96,35 +96,33 @@ public class GestionProductores extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Componentes del formulario
-        gbc.gridx = 0; gbc.gridy = 0;
-        panelFormulario.add(new JLabel("ID Productor:"), gbc);
-        gbc.gridx = 1;
+        // CAMBIO: Campo ID Productor OCULTO
         txtId = new JTextField();
-        txtId.setEditable(false);
-        txtId.setBackground(new Color(240, 240, 240));
-        panelFormulario.add(txtId, gbc);
+        txtId.setVisible(false); // Campo oculto para uso interno
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        // Campo Nombre Completo (obligatorio)
+        gbc.gridx = 0; gbc.gridy = 0;
         panelFormulario.add(new JLabel("Nombre Completo:*"), gbc);
         gbc.gridx = 1;
         txtNombre = new JTextField();
         panelFormulario.add(txtNombre, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        // Campo Tipo Identificación (obligatorio)
+        gbc.gridx = 0; gbc.gridy = 1;
         panelFormulario.add(new JLabel("Tipo Identificación:*"), gbc);
         gbc.gridx = 1;
         cmbTipoIdentificacion = new JComboBox<>(new String[]{"Cédula", "NIT", "Pasaporte", "Cédula Extranjería"});
         panelFormulario.add(cmbTipoIdentificacion, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        // Campo Rol (obligatorio)
+        gbc.gridx = 0; gbc.gridy = 2;
         panelFormulario.add(new JLabel("Rol:*"), gbc);
         gbc.gridx = 1;
         txtRol = new JTextField();
         panelFormulario.add(txtRol, gbc);
 
         // Panel de botones del formulario
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(15, 5, 5, 5);
         JPanel panelBotonesForm = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -159,8 +157,7 @@ public class GestionProductores extends JFrame {
                 return false;
             }
         };
-        // Definición de columnas
-        modeloTabla.addColumn("ID");
+        // CAMBIO: Definición de columnas sin ID
         modeloTabla.addColumn("Nombre Completo");
         modeloTabla.addColumn("Tipo Identificación");
         modeloTabla.addColumn("Rol");
@@ -293,7 +290,7 @@ public class GestionProductores extends JFrame {
         } else {
             for (Productor productor : productores) {
                 Object[] fila = {
-                    productor.getIdProductor(),
+                    // CAMBIO: No mostrar ID en la tabla
                     productor.getNombreCompleto(),
                     productor.getTipoIdentificacion(),
                     productor.getRol()
@@ -320,10 +317,22 @@ public class GestionProductores extends JFrame {
     private void seleccionarProductorDeTabla() {
         int filaSeleccionada = tablaProductores.getSelectedRow();
         if (filaSeleccionada >= 0) {
-            txtId.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-            txtNombre.setText(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
-            cmbTipoIdentificacion.setSelectedItem(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
-            txtRol.setText(modeloTabla.getValueAt(filaSeleccionada, 3).toString());
+            // CAMBIO: Obtener el ID usando los datos visibles
+            String nombre = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+            String tipoIdentificacion = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            
+            // Buscar el productor por nombre y tipo de identificación
+            List<Productor> productores = controller.buscarProductores(nombre);
+            for (Productor productor : productores) {
+                if (productor.getTipoIdentificacion().equals(tipoIdentificacion)) {
+                    txtId.setText(String.valueOf(productor.getIdProductor()));
+                    break;
+                }
+            }
+            
+            txtNombre.setText(nombre);
+            cmbTipoIdentificacion.setSelectedItem(tipoIdentificacion);
+            txtRol.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
         }
     }
 
@@ -387,13 +396,31 @@ public class GestionProductores extends JFrame {
             return;
         }
 
-        int idProductor = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        String nombreProductor = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        // CAMBIO: Obtener el ID usando los datos visibles
+        String nombre = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+        String tipoIdentificacion = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+        
+        List<Productor> productores = controller.buscarProductores(nombre);
+        int idProductor = 0;
+        for (Productor productor : productores) {
+            if (productor.getTipoIdentificacion().equals(tipoIdentificacion)) {
+                idProductor = productor.getIdProductor();
+                break;
+            }
+        }
+
+        if (idProductor == 0) {
+            mostrarMensajeError("No se pudo encontrar el productor seleccionado");
+            return;
+        }
+
+        String rolProductor = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "¿Está seguro que desea eliminar el productor?\n" +
-            "Nombre: " + nombreProductor + "\n" +
-            "ID: " + idProductor + "\n\n" +
+            "Nombre: " + nombre + "\n" +
+            "Tipo Identificación: " + tipoIdentificacion + "\n" +
+            "Rol: " + rolProductor + "\n\n" +
             "Esta acción no se puede deshacer.",
             "Confirmar Eliminación",
             JOptionPane.YES_NO_OPTION,
@@ -430,7 +457,7 @@ public class GestionProductores extends JFrame {
                 } else {
                     for (Productor productor : resultados) {
                         Object[] fila = {
-                            productor.getIdProductor(),
+                            // CAMBIO: No mostrar ID en la tabla
                             productor.getNombreCompleto(),
                             productor.getTipoIdentificacion(),
                             productor.getRol()
