@@ -174,7 +174,7 @@ public class MenuPrincipalProductor extends JFrame {
         });
     }
 
-    // MÉTODO CORREGIDO: Cerrar sesión correctamente
+   
     private void cerrarSesion() {
         // Cerrar sesión en el sistema
         SesionUsuario.getInstance().cerrarSesion();
